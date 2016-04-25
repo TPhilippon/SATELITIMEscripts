@@ -16,19 +16,24 @@ import scipy.signal
 import glob
 from PIL import Image
 from scipy.interpolate import NearestNDInterpolator
+from scipy.interpolate import LinearNDInterpolator
 from matplotlib.colors import Colormap
 
 
 #==============================================================================
 # #                             Definitions 
 #==============================================================================
-varhomepath = 1   # Windows = 0 ;;; Linux = 1 
+
+#varhomepath = 1   # Windows = 0 ;;; Linux = 1 
+varInterpolation = 1   # Nearest = 0 ;;; Linear = 1
 
 
-homepath = [os.environ['HOMEPATH'], os.environ['HOME']]
-homepath = homepath[varhomepath]
-path = '/Users/terencephilippon/Desktop/Python/Input/'
-outpath = '/Users/terencephilippon/Desktop/Python/Output/'
+homepath = os.environ['HOME']  # Windows = os.environ['HOMEPATH'] ;;; Linux = os.environ['HOME']
+path = homepath+'/SATELITIME/data/ZR/'
+outpath = homepath+'/SATELITIME/data/contours/interp/'
+
+#path = '/Users/terencephilippon/Desktop/Python/Input/'
+#outpath = '/Users/terencephilippon/Desktop/Python/Output/'
 print 'starting...'
 print path
 
@@ -43,16 +48,17 @@ x = landXY[0]
 y = landXY[1]
 #x = x.reshape(40007,1) ###
 #y = y.reshape(40007,1) ###
+landNAN = np.empty(shape=(landXY.shape[1],1)) ###
+landNAN[:] = np.nan
+
 x = x.reshape(landXY.shape[1],1)
 y = y.reshape(landXY.shape[1],1)
 landXY = np.hstack((x,y))
 
-landmask3[landmask3>0.5] = 100
+landmask3[landmask3>0.5] = 999
 landmask3[landmask3<0.5] = 0
 #landXY = landXY.reshape(42002,2)
 
-landNAN = np.empty(shape=(landXY.shape[1],1)) ###
-landNAN[:] = np.nan
 land = np.hstack((landXY,landNAN))
 
 # Data we want to read and interpolate
@@ -116,8 +122,8 @@ for myfile in data:
     zrNEW = zr+landmask3   # Land_NaN / NaN interp / values
     
     # 
-    zrland = zrNEW[zrNEW==100]
-    zrlandxy = np.argwhere(zrNEW==100)
+    zrland = zrNEW[zrNEW==999]
+    zrlandxy = np.argwhere(zrNEW==999)
     zrland = zrland.reshape(zrlandxy.shape[0],1)
     zrland3 = np.hstack((zrlandxy,zrland))    
     zrland3[:,2] = np.nan    
@@ -134,9 +140,13 @@ for myfile in data:
 #==============================================================================
    
     
-    #Create interpolator.
-    interp0 = NearestNDInterpolator(zrON[:,0:2],zrON[:,2])
-#    interp0 = LinearNDInterpolator(zr3[:,0:2],zr3[:,2])
+    #Create interpolator -* Choose interpolator *-
+    
+    interp0 = [NearestNDInterpolator(zrON[:,0:2],zrON[:,2]), 
+               LinearNDInterpolator(zrON[:,0:2],zrON[:,2])][varInterpolation]
+#    interp0 = LinearNDInterpolator(zrON[:,0:2],zrON[:,2])
+#    interp0 = NearestNDInterpolator(zrON[:,0:2],zrON[:,2])
+
     #Apply interpolator to coordinates.
     interp=interp0(zrNAN2[:,0:2])
 #    interp=interp0((zrNAN[:,0],zrNAN[:,1]),zrNAN[:,2])
