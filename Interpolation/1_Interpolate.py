@@ -24,7 +24,7 @@ from matplotlib.colors import Colormap
 # #                             Definitions 
 #==============================================================================
 
-#varhomepath = 1   # Windows = 0 ;;; Linux = 1 
+#varhomepath = 1   # Windows = 0 ;;; Linux/MacOS = 1 
 varInterpolation = 1   # Nearest = 0 ;;; Linear = 1
 
 
@@ -171,7 +171,7 @@ for myfile in data:
     plt.imshow(matrix,norm=norm_chl, origin='upper', cmap=new_map_chl,)
 #    plt.imshow(landmask)
     plt.show()
-    fig1.savefig(outpath+myfile[-46:-4]+'nearestND'+'.png')
+    fig1.savefig(outpath+myfile[-46:-4]+'interp'+'.png')
     plt.close()
 
     print myfile+' -----> done'
