@@ -57,7 +57,7 @@ data = glob.glob(path+'*.npy')
 data.sort()
 print data
 
-gauss = Gaussian2DKernel(stddev=1)
+gauss = Gaussian2DKernel(stddev=1)   # CONVOLVE SP
 gauss_fft = Gaussian2DKernel(stddev=1)
 
 for myfile in data:
@@ -65,7 +65,7 @@ for myfile in data:
     print myfile
     zr = np.load(myfile)
     
-    zr_conv = convolve(zr,gauss)
+    zr_conv = convolve(zr,gauss)  # CONVOLVE SP
 #    zr_convfft = convolve_fft(zr,gauss_fft)
     
 #    fig1 = plt.gcf()

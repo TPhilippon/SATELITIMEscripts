@@ -16,9 +16,9 @@ import scipy.signal
 import glob
 from PIL import Image
 from scipy.interpolate import NearestNDInterpolator
-from scipy.interpolate import LinearNDInterpolator
+from scipy.interpolate import LinearNDInterpolator, griddata
 from matplotlib.colors import Colormap
-
+from astropy.convolution import convolve, Gaussian2DKernel
 
 #==============================================================================
 # #                             Definitions 
@@ -27,10 +27,15 @@ from matplotlib.colors import Colormap
 #varhomepath = 1   # Windows = 0 ;;; Linux/MacOS = 1 
 varInterpolation = 1   # Nearest = 0 ;;; Linear = 1
 
+if os.name == 'posix':
+    varhomepath = 1
+else: varhomepath = 0
 
 homepath = os.environ['HOME']  # Windows = os.environ['HOMEPATH'] ;;; Linux = os.environ['HOME']
 path = homepath+'/SATELITIME/data/ZR/'
 outpath = homepath+'/SATELITIME/data/contours/interp/'
+
+gauss = Gaussian2DKernel(stddev=1)
 
 #path = '/Users/terencephilippon/Desktop/Python/Input/'
 #outpath = '/Users/terencephilippon/Desktop/Python/Output/'
@@ -38,26 +43,25 @@ print 'starting...'
 print path
 
 # Landmask to find land releted NaN to exclude from interpolation.
-landmask = plt.imread('/Users/terencephilippon/Desktop/Python/'+'landmaskZRbw.png')
+landmask = plt.imread('/Users/terencephilippon/Desktop/Python/'+'landmaskZRbw.png') # préfixe
 # Landmask de forme 350,500,4 ; la matrice est dans le 4ième indice (indice 3 donc pour 0,1,2,3)
-landmask3 = landmask[0:350,0:500,3]
+lignes, colonnes, indice = landmask.shape
+landmask3 = landmask[:lignes,:colonnes,3]  #!!! [0:350,0:500,3] Code avec long, larg, rgb = landmask.shape
 #sLandNAN = np.select(landmask3>0.1,landmask3)
 landXY = np.where(landmask3==1)
-landXY = np.asarray(landXY)
-x = landXY[0]
-y = landXY[1]
-#x = x.reshape(40007,1) ###
-#y = y.reshape(40007,1) ###
-landNAN = np.empty(shape=(landXY.shape[1],1)) ###
+landXY = np.asarray(landXY).T
+#x = landXY[0]
+#y = landXY[1]
+
+landNAN = np.empty(shape=(landXY.shape[0],1)) ###
 landNAN[:] = np.nan
 
-x = x.reshape(landXY.shape[1],1)
-y = y.reshape(landXY.shape[1],1)
-landXY = np.hstack((x,y))
+#x = x.reshape(landXY.shape[1],1)
+#y = y.reshape(landXY.shape[1],1)
+#landXY = np.hstack((x,y))
 
 landmask3[landmask3>0.5] = 999
 landmask3[landmask3<0.5] = 0
-#landXY = landXY.reshape(42002,2)
 
 land = np.hstack((landXY,landNAN))
 
@@ -95,19 +99,21 @@ new_map_gray_chl = mpl.colors.LinearSegmentedColormap.from_list('new_map_gray_ch
 for myfile in data:
     print 'reading data...'
     print myfile
-    zr = np.load(myfile)
+    zrSOURCE = np.load(myfile)
+    
+    zr = convolve(zrSOURCE,gauss)
     
     #Obtenir ZR en 3 colonnes :
-    
+#    zrCONV = convolve(zr,gauss)
     #1. Coordonnées de zr.
     coords = np.argwhere(zr)
     #2. Coordonnées en colonne.
-    xcoords = coords[:,0]
-    ycoords = coords[:,1]
+#    xcoords = coords[:,0]
+#    ycoords = coords[:,1]
     #3. Valeurs de zr en ligne.
-    zrxy = zr[[xcoords],[ycoords]]
+    zrxyt = zr[[coords[:,0]],[coords[:,1]]].T #
     #Transpose de ZR pour passer en colonne.
-    zrxyt=zrxy.T
+#    zrxyt=zrxy.T
     #4. Ajouter la colonne ZR aux colonnes des coordonnes (3c total).
     zr3 = np.hstack((coords,zrxyt))
     #Extract zr3 values only.
@@ -119,59 +125,66 @@ for myfile in data:
     
     zr[np.isnan(zr)] = 0
     
-    zrNEW = zr+landmask3   # Land_NaN / NaN interp / values
+    zrNEW = zr+landmask3   # land >= 999 ;;; NaN to interpolate == 0
     
-    # 
-    zrland = zrNEW[zrNEW==999]
-    zrlandxy = np.argwhere(zrNEW==999)
+    #
+    zrland = zrNEW[zrNEW>=999]
+    zrlandxy = np.argwhere(zrNEW>=999)
     zrland = zrland.reshape(zrlandxy.shape[0],1)
     zrland3 = np.hstack((zrlandxy,zrland))    
-    zrland3[:,2] = np.nan    
+    zrland3[:,2] = np.nan    # zrland3 = coords and NaN for landmask
     
-    zrNEW[zrNEW==0] = np.nan
+    zrNEW[zrNEW==0] = np.nan # Retour NaN sur pixels à interpoler
     
     zrNAN = zrNEW[np.isnan(zrNEW)]
     zrNANxy = np.argwhere(np.isnan(zrNEW))
     zrNAN = zrNAN.reshape(zrNANxy.shape[0],1)
-    zrNAN2 = np.hstack((zrNANxy,zrNAN))    
+    zrNAN3col = np.hstack((zrNANxy,zrNAN))
+
+        
     
 #==============================================================================
-#                         #***** INTERPOLATION ******
+#                         ***** INTERPOLATION ******
 #==============================================================================
+   
+    grid_z0 = griddata((zrON[:,0], zrON[:,1]), zrON[:,2], zrNANxy, method='linear')   
+   
+    matrix = np.zeros(zr.shape)
+    matrix[zrNANxy[:,0],zrNANxy[:,1]]= grid_z0
+    matrix[zrON[:,0].astype(int),zrON[:,1].astype(int)]=zrON[:,2]
    
     
     #Create interpolator -* Choose interpolator *-
-    
-    interp0 = [NearestNDInterpolator(zrON[:,0:2],zrON[:,2]), 
-               LinearNDInterpolator(zrON[:,0:2],zrON[:,2])][varInterpolation]
-#    interp0 = LinearNDInterpolator(zrON[:,0:2],zrON[:,2])
-#    interp0 = NearestNDInterpolator(zrON[:,0:2],zrON[:,2])
+#    # $$$
+#    interp0 = [NearestNDInterpolator(zrON[:,0:2],zrON[:,2]), 
+#               LinearNDInterpolator(zrON[:,0:2],zrON[:,2])][varInterpolation]
+#             
+#    #Apply interpolator to coordinates.
+#    interp=interp0(zrNAN3col[:,0:2])
+##    interp=interp0((zrNAN[:,0],zrNAN[:,1]),zrNAN[:,2])
+##    result0=interp0(np.ravel(xx), np.ravel(yy)).reshape( xx.shape )
+#    
+#    zrNEW2=np.hstack((zrNAN3col[:,0:2],interp[:,None])) # Je colle la 3e colonne des données interpolées.
+#    zrINT=np.vstack((zrON,zrNEW2)) # All originale + Interpolated : format np.array (x,y,z)
+#    zrINT=np.vstack((zrINT,zrland3))
+#    # Converntir en matrice-image contraire de aregwhere
+#    X = zrINT[:,0].astype(int)
+#    Y = zrINT[:,1].astype(int)
+#    Z = zrINT[:,2]
+#
+#    X=np.array(X).tolist()
+#    Y=np.array(Y).tolist()
+#    matrix = np.zeros(zr.shape)
+#    matrix[X,Y] = Z
+    # $$$
 
-    #Apply interpolator to coordinates.
-    interp=interp0(zrNAN2[:,0:2])
-#    interp=interp0((zrNAN[:,0],zrNAN[:,1]),zrNAN[:,2])
-#    result0=interp0(np.ravel(xx), np.ravel(yy)).reshape( xx.shape )
-    
-    zrNEW2=np.hstack((zrNAN2[:,0:2],interp[:,None])) # Je recolle la 3e colonne des données interpolées.
-    zrINT=np.vstack((zrON,zrNEW2)) # Je recolle les données interpolées aux données originbalesx . All originale + Interpolated : format np.array (x,y,z)
-    zrINT=np.vstack((zrINT,zrland3))
-    # Converntir en matrice-image contraire de aregwhere
-    X = zrINT[:,0]
-    Y = zrINT[:,1]
-    Z = zrINT[:,2]
-    X=X.astype(int)
-    Y=Y.astype(int)
-    X=np.array(X).tolist()
-    Y=np.array(Y).tolist()
-    matrix = np.zeros([350,500])
-    matrix[X,Y] = Z
-    
     # Afficher / enregistrer l'image
     fig1 = plt.gcf()
+
     plt.imshow(matrix,norm=norm_chl, origin='upper', cmap=new_map_chl,)
-#    plt.imshow(landmask)
+    plt.imshow(landmask, color='white',)
     plt.show()
-    fig1.savefig(outpath+myfile[-46:-4]+'interp'+'.png')
+#    fig1.savefig(outpath+myfile[-46:-4]+'interpConvolve'+'.png')
     plt.close()
 
     print myfile+' -----> done'
