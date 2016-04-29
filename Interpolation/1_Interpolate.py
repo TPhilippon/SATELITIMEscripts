@@ -28,12 +28,24 @@ from astropy.convolution import convolve, Gaussian2DKernel
 varInterpolation = 1   # Nearest = 0 ;;; Linear = 1
 
 if os.name == 'posix':
-    varhomepath = 1
-else: varhomepath = 0
+    homepath = os.environ['HOME']
+else: homepath = os.environ['HOMEPATH']
 
-homepath = os.environ['HOME']  # Windows = os.environ['HOMEPATH'] ;;; Linux = os.environ['HOME']
-path = homepath+'/SATELITIME/data/ZR/'
-outpath = homepath+'/SATELITIME/data/contours/interp/'
+#homepath = os.environ['HOME']  # Windows = os.environ['HOMEPATH'] ;;; Linux = os.environ['HOME']
+if os.name == 'nt':
+    path = homepath+'\\SATELITIME\\data\\ZR\\'
+    outpath = homepath+'\\SATELITIME\\data\\contours\\interp_png\\'
+    outpathNPY = homepath+'\\SATELITIME\\data\\contours\\interp_npy\\'
+    landpath = homepath+'\\SATELITIME\\data\\'
+else : 
+    path = homepath+'/SATELITIME/data/ZR/'
+    outpath = homepath+'/SATELITIME/data/contours/interp_png/'
+    outpathNPY = homepath+'/SATELITIME/data/contours/interp_npy/'
+    landpath = homepath+'/SATELITIME/data/'
+    
+#path = homepath+'/SATELITIME/data/ZR/'
+#outpath = homepath+'/SATELITIME/data/contours/interp_png/'
+#outpathNPY = homepath+'/SATELITIME/data/contours/interp_npy/'
 
 gauss = Gaussian2DKernel(stddev=1)
 
@@ -43,7 +55,7 @@ print 'starting...'
 print path
 
 # Landmask to find land releted NaN to exclude from interpolation.
-landmask = plt.imread('/Users/terencephilippon/Desktop/Python/'+'landmaskZRbw.png') # préfixe
+landmask = plt.imread(landpath+'landmaskZRbw.png') # préfixe
 # Landmask de forme 350,500,4 ; la matrice est dans le 4ième indice (indice 3 donc pour 0,1,2,3)
 lignes, colonnes, indice = landmask.shape
 landmask3 = landmask[:lignes,:colonnes,3]  #!!! [0:350,0:500,3] Code avec long, larg, rgb = landmask.shape
@@ -151,9 +163,10 @@ for myfile in data:
     plt.imshow(matrix, norm=norm_chl, origin='upper', cmap=new_map_chl,)
 #    plt.imshow(landmask,)
     plt.show()
-#    fig1.savefig(outpath+myfile[-46:-4]+'interpConvolve'+'.png')
+    fig1.savefig(outpath+myfile[-46:-4]+'interpConvolve'+'.png')
+    np.save(outpathNPY+myfile[-46:-4]+'interp'+'.npy', matrix)
     plt.close()
-
+    
     print myfile+' -----> done'
 
 print '>>> end'
