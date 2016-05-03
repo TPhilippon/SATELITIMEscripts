@@ -11,7 +11,7 @@ import numpy as np
 from pylab import mpl as mpl
 import matplotlib.pyplot as plt
 from matplotlib.colors import Colormap
-
+from os.path import basename
 
 #==============================================================================
 # #                             Definitions 
@@ -75,16 +75,24 @@ print data
 #arr = np.array([[[1,2], [3,5]], [[4,8], [1,9]]])
 
 # Création array vide pour stocker les données. 
-x = np.zeros(5, dtype= [('date', 'S14', 500), ('seuil', 'int8', 8), ('zrSEUIL', 'int8', (350,500))])
+x = np.zeros(10, dtype= [('date', 'S15', 1), ('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
 
 # Rappel : seuilx100 
+seuils = np.array([(0.10), (0.15), (0.20), (0.25), (0.30), (0.40)])
+Seuils = seuils*100
+
+i = 0
 
 for myfile in data:
     print 'reading data...'
     print myfile
-
+    r = np.load(myfile)
+    x['date'][i] = basename(myfile[:-4])
+    x['seuil'][i] = Seuils
+    x['zrSEUIL'][i] = r
+    i += 1
     
-
+    print 'end'
 
 
 
