@@ -26,15 +26,13 @@ else: homepath = os.environ['HOMEPATH']
 
 #homepath = os.environ['HOME']  # Windows = os.environ['HOMEPATH'] ;;; Linux = os.environ['HOME']
 if os.name == 'nt':
-    path = homepath+'\\SATELITIME\\data\\ZR\\'
-    outpath = homepath+'\\SATELITIME\\data\\contours\\interp_png\\'
-    outpathNPY = homepath+'\\SATELITIME\\data\\contours\\interp_npy\\'
-    landpath = homepath+'\\SATELITIME\\data\\'
+    path = homepath+'\\SATELITIME\\data\\contours\\interp_npy\\'
+    outpath = homepath+'\\SATELITIME\\data\\contours\\zrSEUILS\\'
+
 else : 
-    path = homepath+'/SATELITIME/data/ZR/'
-    outpath = homepath+'/SATELITIME/data/contours/interp_png/'
-    outpathNPY = homepath+'/SATELITIME/data/contours/interp_npy/'
-    landpath = homepath+'/SATELITIME/data/'
+    path = homepath+'/SATELITIME/data/contours/interp_npy/'
+    outpath = homepath+'/SATELITIME/data/contours/zrSEUILS/'
+
     
 #path = homepath+'/SATELITIME/data/ZR/'
 #outpath = homepath+'/SATELITIME/data/contours/interp_png/'
@@ -65,19 +63,27 @@ Colormap.set_under(new_map_chl,color=new_map_chl._lut[0,:]) # Set color for valu
 grays = [(0.33,0.33,0.33)] + [(plt.cm.gray(i)) for i in xrange(1,256)]
 new_map_gray_chl = mpl.colors.LinearSegmentedColormap.from_list('new_map_gray_chl', grays, N=256)
 
+data = glob.glob(path+'*.npy')
+data.sort()
+print data
+
 #==============================================================================
 # #                             Starting loop
 #==============================================================================
 
 
-array = np.array([[[1,2], [3,5]], [[4,8], [1,9]]])
+#arr = np.array([[[1,2], [3,5]], [[4,8], [1,9]]])
 
 # Création array vide pour stocker les données. 
 x = np.zeros(5, dtype= [('date', 'S14', 500), ('seuil', 'int8', 8), ('zrSEUIL', 'int8', (350,500))])
 
-# seuilx100 
+# Rappel : seuilx100 
 
+for myfile in data:
+    print 'reading data...'
+    print myfile
 
+    
 
 
 
