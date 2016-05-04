@@ -5,6 +5,8 @@ Created on Mon May  2 18:09:45 2016
 @author: terencephilippon
 """
 
+# Loading image files ; create isolines ; plot
+
 import os, sys
 import glob
 import numpy as np
@@ -27,11 +29,11 @@ else: homepath = os.environ['HOMEPATH']
 #homepath = os.environ['HOME']  # Windows = os.environ['HOMEPATH'] ;;; Linux = os.environ['HOME']
 if os.name == 'nt':
     path = homepath+'\\SATELITIME\\data\\contours\\interp_npy\\'
-    outpath = homepath+'\\SATELITIME\\data\\contours\\zrSEUILS\\'
+    outpath = homepath+'\\SATELITIME\\data\\contours\\iso_npy\\'
 
 else : 
     path = homepath+'/SATELITIME/data/contours/interp_npy/'
-    outpath = homepath+'/SATELITIME/data/contours/zrSEUILS/'
+    outpath = homepath+'/SATELITIME/data/contours/iso_npy/'
 
     
 #path = homepath+'/SATELITIME/data/ZR/'
@@ -75,11 +77,13 @@ print data
 #arr = np.array([[[1,2], [3,5]], [[4,8], [1,9]]])
 
 # Création array vide pour stocker les données. 
-x = np.zeros(10, dtype= [('date', 'S15', 1), ('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
+#x = np.zeros(10, dtype= [('date', 'S15', 1), ('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
 
 # Rappel : seuilx100 
-seuils = np.array([(0.10), (0.15), (0.20), (0.25), (0.30), (0.40)])
-Seuils = seuils*100
+#seuils = np.array([(0.10), (0.15), (0.20), (0.25), (0.30), (0.40)])
+seuils = np.array([(0.20), (0.40)])
+#Seuils = seuils*100
+
 
 i = 0
 
@@ -87,10 +91,10 @@ for myfile in data:
     print 'reading data...'
     print myfile
     r = np.load(myfile)
-    x['date'][i] = basename(myfile[:-4])
-    x['seuil'][i] = Seuils
-    x['zrSEUIL'][i] = r
-    i += 1
+#    x['date'][i] = basename(myfile[:-4])
+#    x['seuil'][i] = Seuils
+#    x['zrSEUIL'][i] = r
+#    i += 1
     
     print 'end'
 
