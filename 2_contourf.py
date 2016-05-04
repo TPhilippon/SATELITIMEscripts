@@ -16,6 +16,7 @@ from matplotlib.colors import Colormap
 from os.path import basename
 from mamba import *
 from scipy import ndimage
+from pylab import savefig
 
 #==============================================================================
 # #                             Definitions 
@@ -95,10 +96,26 @@ for myfile in data:
 #    x['zrSEUIL'][i] = r
 #    i += 1
     
-    zrcontour = plt.contourf(r,seuils, origin='upper')
-#    plt.contour(r,seuils, origin='upper')
-    A = ndimage.binary_opening(r)
-    plt.plot()
+    fig1 = plt.gcf()
+    # morphology
+#    A = ndimage.binary_dilation(r).astype(r.dtype)
+    
+    
+#
+     # contours de zr avec remplissage
+ #    zrcontourf = plt.contourf(r,seuils, origin='upper', cmap = new_map_chl)
+     # contours de zr sans remplissage
+ #    zrcontour = plt.contour(r,seuils, origin='upper')
+#
+    
+    
+    
+    A = ndimage.binary_dilation(fig1).astype(r.dtype)
+    
+    # ouverture du contourf
+#    A = ndimage.binary_opening(zrcontour)
+    
+    
     # --- MbImage ---
 #    im = imageMb(myfile)
 #    negate(im, im)
@@ -107,11 +124,28 @@ for myfile in data:
 #    im.save(outpath+basename(myfile[:-4])+'.png')    
     # --- MbImage ---
     
-#    fig1 = plt.gcf()
-    plt.imshow(zrcontour, norm=norm_chl, origin='upper', cmap=new_map_chl,)
-#    plt.show()
     
+#    plt.imshow(zrcontour, norm=norm_chl, origin='upper', cmap=new_map_chl,)
+#    plt.show()
+    plt.close()
 print 'end'
+
+
+# *** Dictionnaire ***
+
+#plt.plot(zrcontour.allsegs)
+#zrcontour.__dict__
+#zrcontour.collections[0].get_paths()
+
+#p = zrcontourf.collections[0].get_paths()[0]
+#v = p.vertices
+#x = v[:,0]
+#y = v[:,1]
+
+#**
+#r.round(1)
+
+
 
 
 
