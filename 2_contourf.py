@@ -94,13 +94,29 @@ for myfile in data:
 #    x['date'][i] = basename(myfile[:-4])
 #    x['seuil'][i] = Seuils
 #    x['zrSEUIL'][i] = r
-#    i += 1
+#    i += 1 
+    
+    
+    r>0.20
+    (r>0.20)+0
+    rs = (r>0.20)+0
+#    rs = (r<0.20)+0  # Alternate
+    ndimage.binary_dilation(rs).astype(r.dtype)
+    ndimage.binary_erosion(rs).astype(r.dtype)
+    plt.imshow(ndimage.binary_dilation(rs).astype(r.dtype))
+    
+    
     
     fig1 = plt.gcf()
+#    r.round(1)
+    plt.imshow(r.round(1), norm=norm_chl, origin='upper', cmap=new_map_chl,)
+    
+    
+    
+    
+    
     # morphology
 #    A = ndimage.binary_dilation(r).astype(r.dtype)
-    
-    
 #
      # contours de zr avec remplissage
  #    zrcontourf = plt.contourf(r,seuils, origin='upper', cmap = new_map_chl)
@@ -116,13 +132,6 @@ for myfile in data:
 #    A = ndimage.binary_opening(zrcontour)
     
     
-    # --- MbImage ---
-#    im = imageMb(myfile)
-#    negate(im, im)
-#    closeHoles(im,im)
-#    plt.imshow(im)
-#    im.save(outpath+basename(myfile[:-4])+'.png')    
-    # --- MbImage ---
     
     
 #    plt.imshow(zrcontour, norm=norm_chl, origin='upper', cmap=new_map_chl,)
