@@ -96,6 +96,7 @@ for myfile in data:
 #    x['zrSEUIL'][i] = r
 #    i += 1 
     
+    # *************
     
     r>0.20
     (r>0.20)+0
@@ -105,6 +106,7 @@ for myfile in data:
     ndimage.binary_erosion(rs).astype(r.dtype)
     plt.imshow(ndimage.binary_dilation(rs).astype(r.dtype))
     
+    # *************
     
     
     fig1 = plt.gcf()
