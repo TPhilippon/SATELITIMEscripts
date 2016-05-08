@@ -14,7 +14,7 @@ from pylab import mpl as mpl
 import matplotlib.pyplot as plt
 from matplotlib.colors import Colormap
 from os.path import basename
-from mamba import *
+#from mamba import *
 from scipy import ndimage
 from pylab import savefig
 
@@ -32,12 +32,12 @@ else: homepath = os.environ['HOMEPATH']
 #homepath = os.environ['HOME']  # Windows = os.environ['HOMEPATH'] ;;; Linux = os.environ['HOME']
 if os.name == 'nt':
     path = homepath+'\\SATELITIME\\data\\contours\\interp_npy\\'
-    outpath = homepath+'\\SATELITIME\\data\\contours\\iso_npy\\'
-
+    outpathNPY = homepath+'\\SATELITIME\\data\\contours\\iso_npy\\'
+    outpathPNG = homepath+'\\SATELITIME\\data\\contours\\iso_png\\'
 else : 
     path = homepath+'/SATELITIME/data/contours/interp_npy/'
-    outpath = homepath+'/SATELITIME/data/contours/iso_npy/'
-
+    outpathNPY = homepath+'/SATELITIME/data/contours/iso_npy/'
+    outpathPNG = homepath+'/SATELITIME/data/contours/iso_png/'
     
 #path = homepath+'/SATELITIME/data/ZR/'
 #outpath = homepath+'/SATELITIME/data/contours/interp_png/'
@@ -74,71 +74,51 @@ new_map_gray_chl = mpl.colors.LinearSegmentedColormap.from_list('new_map_gray_ch
 #==============================================================================
 
 
-#arr = np.array([[[1,2], [3,5]], [[4,8], [1,9]]])
-
 # Création array vide pour stocker les données. 
-#x = np.zeros(10, dtype= [('date', 'S15', 1), ('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
+matrix = np.zeros(10, dtype= [('date', 'S15', 1), ('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
+matrix = np.zeros(10, dtype= [('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
 
-# Rappel : seuilx100 
-seuils = np.array([(0.05), (0.10), (0.15), (0.20), (0.30), (0.40), (10)])
-#seuils = np.array([(0.20), (0.40)])
-#Seuils = seuils*100
+matrix = np.zeros([10, 7, 350,500])
 
+# Alternate : seuilx100 
+seuils = np.array([(0.05), (0.10), (0.15), (0.20), (0.30), (0.40), (5)])
 
-i = 0
+iseuil = 0
+ifile = 0
 
 for myfile in data:
     print 'reading data...'
     print myfile
-    r = np.load(myfile)                        # numpy
-#    x['date'][i] = basename(myfile[:-4])
-#    x['seuil'][i] = Seuils
-#    x['zrSEUIL'][i] = r
-#    i += 1 
     
     # *************
+    # Seuils
+    ZR = np.load(myfile)
     
-    r>0.20
-    (r>0.20)+0
-    rs = (r>0.20)+0
-#    rs = (r<0.20)+0  # Alternate
-    ndimage.binary_dilation(rs).astype(r.dtype)
-    ndimage.binary_erosion(rs).astype(r.dtype)
-    plt.imshow(ndimage.binary_dilation(rs).astype(r.dtype))
-    
-    # *************
-    
-    
-    fig1 = plt.gcf()
-#    r.round(1)
-    plt.imshow(r.round(1), norm=norm_chl, origin='upper', cmap=new_map_chl,)
-    
-    
-    
-    
-    
-    # morphology
-#    A = ndimage.binary_dilation(r).astype(r.dtype)
-#
-     # contours de zr avec remplissage
- #    zrcontourf = plt.contourf(r,seuils, origin='upper', cmap = new_map_chl)
-     # contours de zr sans remplissage
- #    zrcontour = plt.contour(r,seuils, origin='upper')
-#
-    
-    
-    
-    A = ndimage.binary_dilation(fig1).astype(r.dtype)
-    
-    # ouverture du contourf
-#    A = ndimage.binary_opening(zrcontour)
-    
-    
-    
-    
-#    plt.imshow(zrcontour, norm=norm_chl, origin='upper', cmap=new_map_chl,)
-#    plt.show()
-    plt.close()
+    for iseuil in range(7):
+     
+        zr = np.ma.masked_array(ZR,ZR>seuils[iseuil])
+        zr.data
+        zrs = np.ma.masked_array(ZR,ZR>seuils[iseuil]).mask
+        
+        matrix[ifile, iseuil] = zrs+1
+        
+        # *************
+        # Morpho maths
+        
+    #    zrd = ndimage.binary_dilation(zrs).astype(zr.dtype)
+    #    zre = ndimage.binary_erosion(zrd).astype(zr.dtype)
+        
+        # *************
+        # Print seuil & save npy.
+        
+        fig1 = plt.gcf()
+        plt.imshow(matrix[ifile,iseuil])
+        fig1.savefig(outpathPNG+myfile[-46:-4]+'_iso'+'seuil'+str(iseuil)+'.png')
+
+
+        plt.close()
+    ifile+=1
+np.save(outpathNPY+myfile[-46:-4]+'_iso'+'_seuils'+'.npy', matrix)
 print 'end'
 
 
@@ -156,7 +136,14 @@ print 'end'
 #**
 #r.round(1)
 
-
+#    A = ndimage.binary_dilation(r).astype(r.dtype)
+#    contours de zr avec remplissage
+#    zrcontourf = plt.contourf(r,seuils, origin='upper', cmap = new_map_chl)
+#    contours de zr sans remplissage
+#    zrcontour = plt.contour(r,seuils, origin='upper')
+#    ouverture du contourf
+#    A = ndimage.binary_opening(zrcontour)
+#    plt.imshow(zrcontour, norm=norm_chl, origin='upper', cmap=new_map_chl,) 
 
 
 
