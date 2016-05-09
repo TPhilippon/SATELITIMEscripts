@@ -86,6 +86,24 @@ seuils = np.array([(0.05), (0.10), (0.15), (0.20), (0.30), (0.40), (5)])
 iseuil = 0
 ifile = 0
 
+kernel3= np.array([[0, 0, 0, 1, 0, 0, 0],
+                   [0, 0, 1, 1, 1, 0, 0],
+                   [0, 1, 1, 1, 1, 1, 0],
+                   [0, 1, 1, 1, 1, 1, 0],
+                   [0, 1, 1, 1, 1, 1, 0],
+                   [0, 0, 1, 1, 1, 0, 0],
+                   [0, 0, 0, 1, 0, 0, 0]])
+                   
+kernel2= np.array([[0, 0, 0, 1, 0, 0, 0],
+                   [0, 0, 1, 1, 1, 0, 0],
+                   [0, 0, 1, 1, 1, 0, 0],
+                   [0, 0, 0, 1, 0, 0, 0]])  
+                   
+kernel1= np.array([[0, 0, 0, 1, 0, 0, 0],
+                   [0, 0, 1, 1, 1, 0, 0],
+                   [0, 0, 0, 1, 0, 0, 0]]) 
+                 
+                   
 for myfile in data:
     print 'reading data...'
     print myfile
@@ -105,14 +123,19 @@ for myfile in data:
         # *************
         # Morpho maths
         
-    #    zrd = ndimage.binary_dilation(zrs).astype(zr.dtype)
-    #    zre = ndimage.binary_erosion(zrd).astype(zr.dtype)
+        zre1 = ndimage.binary_erosion(zrs, structure=kernel2).astype(zr.dtype)
+        zrd1 = ndimage.binary_dilation(zre1, structure=kernel2).astype(zr.dtype)
         
+#        zre2 = ndimage.binary_erosion(zre1, structure=kernel2).astype(zr.dtype)
+        zrd2 = ndimage.binary_dilation(zrd1, structure=kernel2).astype(zr.dtype)
+        zrd3 = ndimage.binary_dilation(zrd2, structure=kernel2).astype(zr.dtype)
+
         # *************
         # Print seuil & save npy.
         
         fig1 = plt.gcf()
-        plt.imshow(matrix[ifile,iseuil])
+#        plt.imshow(matrix[ifile,iseuil])
+        plt.imshow(zrd3)
         fig1.savefig(outpathPNG+myfile[-46:-4]+'_iso'+'seuil'+str(iseuil)+'.png')
 
 
