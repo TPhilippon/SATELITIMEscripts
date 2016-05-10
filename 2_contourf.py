@@ -17,6 +17,9 @@ from os.path import basename
 #from mamba import *
 from scipy import ndimage
 from pylab import savefig
+from scipy.interpolate import LinearNDInterpolator, griddata
+import scipy.ndimage
+
 
 #==============================================================================
 # #                             Definitions 
@@ -69,11 +72,6 @@ grays = [(0.33,0.33,0.33)] + [(plt.cm.gray(i)) for i in xrange(1,256)]
 new_map_gray_chl = mpl.colors.LinearSegmentedColormap.from_list('new_map_gray_chl', grays, N=256)
 
 
-#==============================================================================
-# #                             Starting loop
-#==============================================================================
-
-
 # Création array vide pour stocker les données. 
 matrix = np.zeros(10, dtype= [('date', 'S15', 1), ('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
 matrix = np.zeros(10, dtype= [('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
@@ -86,30 +84,44 @@ seuils = np.array([(0.05), (0.10), (0.15), (0.20), (0.30), (0.40), (5)])
 iseuil = 0
 ifile = 0
 
-kernel3= np.array([[0, 0, 0, 1, 0, 0, 0],
+kernel4= np.array([[0, 0, 0, 1, 1, 0, 0, 0],
+                   [0, 0, 1, 1, 1, 1, 0, 0],
+                   [0, 1, 1, 1, 1, 1, 1, 0],
+                   [1, 1, 1, 1, 1, 1, 1, 1],
+                   [1, 1, 1, 1, 1, 1, 1, 1],
+                   [0, 1, 1, 1, 1, 1, 1, 0],
+                   [0, 0, 1, 1, 1, 1, 0, 0],
+                   [0, 0, 0, 1, 1, 0, 0, 0]])
+
+kernel3= np.array([[0, 0, 0, 0, 0, 0, 0],
                    [0, 0, 1, 1, 1, 0, 0],
                    [0, 1, 1, 1, 1, 1, 0],
                    [0, 1, 1, 1, 1, 1, 0],
                    [0, 1, 1, 1, 1, 1, 0],
                    [0, 0, 1, 1, 1, 0, 0],
-                   [0, 0, 0, 1, 0, 0, 0]])
+                   [0, 0, 0, 0, 0, 0, 0]])
                    
-kernel2= np.array([[0, 0, 0, 1, 0, 0, 0],
-                   [0, 0, 1, 1, 1, 0, 0],
-                   [0, 0, 1, 1, 1, 0, 0],
-                   [0, 0, 0, 1, 0, 0, 0]])  
+kernel2= np.array([[0, 0, 0, 0, 0],
+                   [0, 1, 1, 1, 0],
+                   [0, 1, 1, 1, 0],
+                   [0, 1, 1, 1, 0],
+                   [0, 0, 0, 0, 0]])  
                    
-kernel1= np.array([[0, 0, 0, 1, 0, 0, 0],
-                   [0, 0, 1, 1, 1, 0, 0],
-                   [0, 0, 0, 1, 0, 0, 0]]) 
-                 
+kernel1= np.array([[0, 0, 0, 0],
+                   [0, 1, 1, 0],
+                   [0, 1, 1, 0],
+                   [0, 0, 0, 0]]) 
+                
+#==============================================================================
+# #                             Starting loop
+#==============================================================================
                    
 for myfile in data:
     print 'reading data...'
     print myfile
     
     # *************
-    # Seuils
+    # SEUILS
     ZR = np.load(myfile)
     
     for iseuil in range(7):
@@ -120,32 +132,68 @@ for myfile in data:
         
         matrix[ifile, iseuil] = zrs+1
         
-        # *************
+        # *********************************************************************
         # Morpho maths
         
-        zre1 = ndimage.binary_erosion(zrs, structure=kernel2).astype(zr.dtype)
-        zrd1 = ndimage.binary_dilation(zre1, structure=kernel2).astype(zr.dtype)
+        zrd1 = ndimage.binary_dilation(zrs, structure=kernel3).astype(zr.dtype)
+        zre1 = ndimage.binary_erosion(zrd1, structure=kernel3).astype(zr.dtype)
+#        zre1 = ndimage.binary_erosion(zrs, structure=kernel3).astype(zr.dtype)
+#        zrd1 = ndimage.binary_dilation(zre1, structure=kernel3).astype(zr.dtype)
         
-#        zre2 = ndimage.binary_erosion(zre1, structure=kernel2).astype(zr.dtype)
-        zrd2 = ndimage.binary_dilation(zrd1, structure=kernel2).astype(zr.dtype)
-        zrd3 = ndimage.binary_dilation(zrd2, structure=kernel2).astype(zr.dtype)
+        #Closing holes
+        result0= scipy.ndimage.morphology.binary_fill_holes(zre1, structure=kernel3)
+        
+        #Closing islands and headland (cap)
+        result= np.invert(result0)
+        result1= scipy.ndimage.morphology.binary_closing(result, structure=kernel3)
+        result2= np.invert(result1)
+        
+#        result= np.invert(scipy.ndimage.morphology.binary_fill_holes(result0, structure=kernel1))
 
-        # *************
-        # Print seuil & save npy.
-        
+        # *********************************************************************
+        # Print seuil & save all seuils (npy).
+
         fig1 = plt.gcf()
 #        plt.imshow(matrix[ifile,iseuil])
-        plt.imshow(zrd3)
-        fig1.savefig(outpathPNG+myfile[-46:-4]+'_iso'+'seuil'+str(iseuil)+'.png')
-
-
+        plt.imshow(result2)
+        fig1.savefig(outpathPNG+myfile[-46:-4]+'_iso'+'_seuil'+str(iseuil)+'.png')
         plt.close()
+        
+#        fig, (ax1, ax2) = plt.subplots(1,2)
+##    plt.imshow(zr_conv, norm=norm_chl, origin='upper', cmap=new_map_chl,)
+#        ax1.imshow(zrs, norm=norm_chl, origin='upper', cmap=new_map_chl,)
+#        ax2.imshow(zre1, norm=norm_chl, origin='upper', cmap=new_map_chl,) 
+##    ax3.imshow(zr_convfft, norm=norm_chl, origin='upper', cmap=new_map_chl,) 
+#        plt.show()
+#        fig.savefig(outpathPNG+myfile[-46:-4]+'_iso'+'seuil'+'.png', dpi=200, bbox_inches='tight')
+        plt.close()
+        
     ifile+=1
 np.save(outpathNPY+myfile[-46:-4]+'_iso'+'_seuils'+'.npy', matrix)
+
+#==============================================================================
+# #                             Interpolation 4D
+#==============================================================================
+
+#grid = griddata((zrON[:,0], zrON[:,1]), zrON[:,2], zrNANxy, method='linear')   
+#   
+#matrix = np.zeros(zr.shape)
+#matrix[zrNANxy[:,0],zrNANxy[:,1]]= grid
+#matrix[zrON[:,0].astype(int),zrON[:,1].astype(int)]=zrON[:,2]
+   
+   # Ecrase les valeurs interpolées de la terre par le masque terre (en np.nan).
+#matrix = matrix+landmask
+
+
+
+
+
 print 'end'
 
 
-# *** Dictionnaire ***
+#============================
+# # *** Dictionnaire ***
+#============================
 
 #plt.plot(zrcontour.allsegs)
 #zrcontour.__dict__
@@ -161,14 +209,18 @@ print 'end'
 
 #    A = ndimage.binary_dilation(r).astype(r.dtype)
 #    contours de zr avec remplissage
-#    zrcontourf = plt.contourf(r,seuils, origin='upper', cmap = new_map_chl)
+#    1
 #    contours de zr sans remplissage
 #    zrcontour = plt.contour(r,seuils, origin='upper')
 #    ouverture du contourf
 #    A = ndimage.binary_opening(zrcontour)
 #    plt.imshow(zrcontour, norm=norm_chl, origin='upper', cmap=new_map_chl,) 
 
-
+#fig2 = plt.gcf()
+##        plt.imshow(matrix[ifile,iseuil])
+#rcontour = plt.contour(result2, 1, origin='upper')
+#plt.imshow(rcontour)
+#fig2.savefig(outpathPNG+myfile[-46:-4]+'_iso'+'_SeuilContour'+str(iseuil)+'.png')
 
 
 
