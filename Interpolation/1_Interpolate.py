@@ -25,7 +25,7 @@ from astropy.convolution import convolve, Gaussian2DKernel
 #==============================================================================
 
 #varhomepath = 1   # Windows = 0 ;;; Linux/MacOS = 1 
-varInterpolation = 1   # Nearest = 0 ;;; Linear = 1
+#varInterpolation = 1   # Nearest = 0 ;;; Linear = 1
 
 if os.name == 'posix':
     homepath = os.environ['HOME']

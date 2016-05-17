@@ -26,7 +26,7 @@ import scipy.ndimage
 #==============================================================================
 
 #varhomepath = 1   # Windows = 0 ;;; Linux/MacOS = 1 
-varInterpolation = 1   # Nearest = 0 ;;; Linear = 1
+#varInterpolation = 1   # Nearest = 0 ;;; Linear = 1
 
 if os.name == 'posix':
     homepath = os.environ['HOME']
@@ -42,12 +42,6 @@ else :
     outpathNPY = homepath+'/SATELITIME/data/contours/iso_npy/'
     outpathPNG = homepath+'/SATELITIME/data/contours/iso_png/'
     
-#path = homepath+'/SATELITIME/data/ZR/'
-#outpath = homepath+'/SATELITIME/data/contours/interp_png/'
-#outpathNPY = homepath+'/SATELITIME/data/contours/interp_npy/'
-
-#path = '/Users/terencephilippon/Desktop/Python/Input/'
-#outpath = '/Users/terencephilippon/Desktop/Python/Output/'
 print 'starting...'
 print path
 
@@ -73,10 +67,10 @@ new_map_gray_chl = mpl.colors.LinearSegmentedColormap.from_list('new_map_gray_ch
 
 
 # Création array vide pour stocker les données. 
-matrix = np.zeros(10, dtype= [('date', 'S15', 1), ('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
-matrix = np.zeros(10, dtype= [('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
+#matrix = np.zeros(10, dtype= [('date', 'S15', 1), ('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
+#matrix = np.zeros(10, dtype= [('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
 
-matrix = np.zeros([10, 7, 350,500])
+matrix = np.zeros([101, 7, 350,500])
 
 # Alternate : seuilx100 
 seuils = np.array([(0.05), (0.10), (0.15), (0.20), (0.30), (0.40), (5)])
@@ -168,7 +162,8 @@ for myfile in data:
 #        fig.savefig(outpathPNG+myfile[-46:-4]+'_iso'+'seuil'+'.png', dpi=200, bbox_inches='tight')
         plt.close()
         
-    ifile+=1
+        matrix[ifile+1:ifile+10,:,:,:] = np.nan
+    ifile+=10
 np.save(outpathNPY+myfile[-46:-4]+'_iso'+'_seuils'+'.npy', matrix)
 
 #==============================================================================
@@ -204,6 +199,9 @@ i = np.array([[0, 0, 0, 0, 0],
               [0, 0, 0, 0, 0],
               [0, 0, 0, 0, 0],
               [0, 0, 0, 0, 0]])  
+              
+
+
 
 print 'end'
 
