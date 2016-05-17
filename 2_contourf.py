@@ -175,6 +175,9 @@ np.save(outpathNPY+myfile[-46:-4]+'_iso'+'_seuils'+'.npy', matrix)
 # #                             Interpolation 4D
 #==============================================================================
 
+
+
+
 #grid = griddata((zrON[:,0], zrON[:,1]), zrON[:,2], zrNANxy, method='linear')   
 #   
 #matrix = np.zeros(zr.shape)
@@ -184,9 +187,23 @@ np.save(outpathNPY+myfile[-46:-4]+'_iso'+'_seuils'+'.npy', matrix)
    # Ecrase les valeurs interpolées de la terre par le masque terre (en np.nan).
 #matrix = matrix+landmask
 
+a = np.array([[0, 0, 0, 0, 0],
+              [0, 0, 1, 1, 0],
+              [0, 0, 1, 1, 0],
+              [0, 0, 0, 0, 0],
+              [0, 0, 0, 0, 0]])  
+              
+b = np.array([[0, 0, 0, 0, 0],
+              [0, 0, 0, 0, 0],
+              [0, 0, 1, 1, 0],
+              [0, 0, 1, 1, 0],
+              [0, 0, 1, 1, 0]])  
 
-
-
+i = np.array([[0, 0, 0, 0, 0],
+              [0, 0, 0, 0, 0],
+              [0, 0, 0, 0, 0],
+              [0, 0, 0, 0, 0],
+              [0, 0, 0, 0, 0]])  
 
 print 'end'
 
