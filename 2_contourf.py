@@ -124,7 +124,6 @@ for myfile in data:
         zr.data
         zrs = np.ma.masked_array(ZR,ZR>seuils[iseuil]).mask
         
-        matrix[ifile, iseuil] = zrs+1
         
         # *********************************************************************
         # Morpho maths
@@ -146,6 +145,7 @@ for myfile in data:
 
         # *********************************************************************
         # Print seuil & save all seuils (npy).
+        matrix[ifile, iseuil] = result2
 
         fig1 = plt.gcf()
 #        plt.imshow(matrix[ifile,iseuil])
