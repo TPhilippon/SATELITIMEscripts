@@ -70,7 +70,7 @@ new_map_gray_chl = mpl.colors.LinearSegmentedColormap.from_list('new_map_gray_ch
 #matrix = np.zeros(10, dtype= [('date', 'S15', 1), ('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
 #matrix = np.zeros(10, dtype= [('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
 
-matrix = np.zeros([101, 7, 350,500])
+matrix = np.zeros([91, 7, 350,500])
 
 # Alternate : seuilx100 
 seuils = np.array([(0.05), (0.10), (0.15), (0.20), (0.30), (0.40), (5)])
@@ -163,12 +163,21 @@ for myfile in data:
         plt.close()
         
         matrix[ifile+1:ifile+10,:,:,:] = np.nan
-    ifile+=10
-np.save(outpathNPY+myfile[-46:-4]+'_iso'+'_seuils'+'.npy', matrix)
-
+        
 #==============================================================================
 # #                             Interpolation 4D
 #==============================================================================
+#        
+#        xydate1 = np.argwhere(matrix[ifile,iseuil,:,:])
+#        xydate2 = np.argwhere(matrix[ifile,iseuil,:,:])
+#        xydate12 = np.hstack((xydate1,xydate2))
+#        
+#        xyz1 = matrix[ifile, iseuil, xydate1[:,1], xydate1[:,1]].T
+#        
+#        
+#        
+#    ifile+=10
+#np.save(outpathNPY+myfile[-46:-4]+'_iso'+'_seuils'+'.npy', matrix)
 
 
 

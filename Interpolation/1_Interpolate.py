@@ -141,7 +141,6 @@ for myfile in data:
     zrNANxy = np.argwhere(np.isnan(zrNEW))
     zrNAN = zrNAN.reshape(zrNANxy.shape[0],1)
     zrNAN3col = np.hstack((zrNANxy,zrNAN))
-
         
     
 #==============================================================================
