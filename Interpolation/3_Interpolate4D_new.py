@@ -43,3 +43,23 @@ plt.clf()
 plt.imshow(n)
 plt.clf()
 plt.imshow(img)
+
+
+#____
+
+#Superposer d1 et d2 sur la même array. Addition : 0, 1 et 2.
+#On veut un gradient entre les 2 limites. On veut interpoler dans la zone du 1,
+#et c'est comme interpoler dans les nuages (NaN).
+#On reprend ensuite le travail sur les coordonnées avec zrON et zrNAN. (Ou bien
+# ce script là)
+# Le nombre de jours doit être modifiable en début de script. Voir pendant combien
+# de jours le panache le recouvre une île. 
+
+
+
+
+
+
+
+
+
