@@ -146,6 +146,7 @@ for myfile in data:
         # *********************************************************************
         # Print seuil & save all seuils (npy).
         matrix[ifile, iseuil] = result2
+        print "ifile =", ifile, "  iseuil =", iseuil
 
         fig1 = plt.gcf()
 #        plt.imshow(matrix[ifile,iseuil])
@@ -153,21 +154,55 @@ for myfile in data:
         fig1.savefig(outpathPNG+myfile[-46:-4]+'_iso'+'_seuil'+str(iseuil)+'.png')
         plt.close()
         
-#        fig, (ax1, ax2) = plt.subplots(1,2)
-##    plt.imshow(zr_conv, norm=norm_chl, origin='upper', cmap=new_map_chl,)
-#        ax1.imshow(zrs, norm=norm_chl, origin='upper', cmap=new_map_chl,)
-#        ax2.imshow(zre1, norm=norm_chl, origin='upper', cmap=new_map_chl,) 
-##    ax3.imshow(zr_convfft, norm=norm_chl, origin='upper', cmap=new_map_chl,) 
-#        plt.show()
-#        fig.savefig(outpathPNG+myfile[-46:-4]+'_iso'+'seuil'+'.png', dpi=200, bbox_inches='tight')
+
         plt.close()
         
-        matrix[ifile+1:ifile+10,:,:,:] = np.nan
+#        matrix[ifile+1:ifile+10,:,:] = np.nan
         
 #==============================================================================
 # #                             Interpolation 4D
 #==============================================================================
 #        
+        mat = (matrix[10,3,:,:]+matrix[20,3,:,:])
+        mat[mat==1], mat[mat==0] = np.nan, 1
+        
+        
+        
+        x=np.indices(mat.shape)[0]
+        y=np.indices(mat.shape)[1]
+        x=x.flatten()
+        y=y.flatten()
+        m=mat.flatten()
+#        nn=n.flatten()
+        
+#        d0=np.zeros(m.shape)
+#        d10=np.ones(nn.shape)*10
+#        d5=np.ones(nn.shape)*5
+        
+        mat3 = np.vstack((x,y))
+        mat3 = np.vstack((mat3,m))
+        mat3 = mat3.T
+        
+        coordsNAN = mat3[np.isnan(mat3[:,2])]
+#        coordsNAN = np.argwhere(np.isnan(mat3))
+#        coords = np.argwhere(~np.isnan(mat3))
+        coords = mat3[~np.isnan(mat3[:,2])]
+#        xx=np.vstack((x,x)).flatten()
+#        yy=np.vstack((y,y)).flatten()
+#        mn=np.vstack((mm,nn)).flatten()
+#        dd=np.vstack((d0,d10)).flatten()
+        
+        
+        interp = griddata((coords[:,0],coords[:,1]), coords[:,2], coordsNAN[:,0:2], method='linear')
+        
+        mat2 = np.zeros(mat.shape)
+        mat2[coordsNAN[:,0].astype(int),coordsNAN[:,1].astype(int)]= interp
+        mat2[coords[:,0].astype(int),coords[:,1].astype(int)]=coords[:,2]
+        
+#        img = np.zeros(m.shape)
+#        img[x,y]= interp
+        
+        
 #        xydate1 = np.argwhere(matrix[ifile,iseuil,:,:])
 #        xydate2 = np.argwhere(matrix[ifile,iseuil,:,:])
 #        xydate12 = np.hstack((xydate1,xydate2))
@@ -175,7 +210,7 @@ for myfile in data:
 #        xyz1 = matrix[ifile, iseuil, xydate1[:,1], xydate1[:,1]].T
 #        
 #        
-#        
+    ifile+=10
 #    ifile+=10
 #np.save(outpathNPY+myfile[-46:-4]+'_iso'+'_seuils'+'.npy', matrix)
 
@@ -190,25 +225,6 @@ for myfile in data:
    
    # Ecrase les valeurs interpolées de la terre par le masque terre (en np.nan).
 #matrix = matrix+landmask
-
-a = np.array([[0, 0, 0, 0, 0],
-              [0, 0, 1, 1, 0],
-              [0, 0, 1, 1, 0],
-              [0, 0, 0, 0, 0],
-              [0, 0, 0, 0, 0]])  
-              
-b = np.array([[0, 0, 0, 0, 0],
-              [0, 0, 0, 0, 0],
-              [0, 0, 1, 1, 0],
-              [0, 0, 1, 1, 0],
-              [0, 0, 1, 1, 0]])  
-
-i = np.array([[0, 0, 0, 0, 0],
-              [0, 0, 0, 0, 0],
-              [0, 0, 0, 0, 0],
-              [0, 0, 0, 0, 0],
-              [0, 0, 0, 0, 0]])  
-              
 
 
 
@@ -246,7 +262,30 @@ print 'end'
 #plt.imshow(rcontour)
 #fig2.savefig(outpathPNG+myfile[-46:-4]+'_iso'+'_SeuilContour'+str(iseuil)+'.png')
 
+# Figures sur plusieurs axes.
+#        fig, (ax1, ax2) = plt.subplots(1,2)
+##    plt.imshow(zr_conv, norm=norm_chl, origin='upper', cmap=new_map_chl,)
+#        ax1.imshow(zrs, norm=norm_chl, origin='upper', cmap=new_map_chl,)
+#        ax2.imshow(zre1, norm=norm_chl, origin='upper', cmap=new_map_chl,) 
+##    ax3.imshow(zr_convfft, norm=norm_chl, origin='upper', cmap=new_map_chl,) 
+#        plt.show()
+#        fig.savefig(outpathPNG+myfile[-46:-4]+'_iso'+'seuil'+'.png', dpi=200, bbox_inches='tight')
 
-
-
+#a = np.array([[0, 0, 0, 0, 0],
+#              [0, 0, 1, 1, 0],
+#              [0, 0, 1, 1, 0],
+#              [0, 0, 0, 0, 0],
+#              [0, 0, 0, 0, 0]])  
+#              
+#b = np.array([[0, 0, 0, 0, 0],
+#              [0, 0, 0, 0, 0],
+#              [0, 0, 1, 1, 0],
+#              [0, 0, 1, 1, 0],
+#              [0, 0, 1, 1, 0]])  
+#
+#i = np.array([[0, 0, 0, 0, 0],
+#              [0, 0, 0, 0, 0],
+#              [0, 0, 0, 0, 0],
+#              [0, 0, 0, 0, 0],
+#              [0, 0, 0, 0, 0]])  
 
