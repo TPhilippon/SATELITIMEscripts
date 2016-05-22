@@ -5,7 +5,7 @@ Created on Mon May  2 18:09:45 2016
 @author: terencephilippon
 """
 
-# Loading image files ; create isolines ; plot
+# Morphology ; interpolation 3d.
 
 import os, sys
 import glob
@@ -19,6 +19,7 @@ from scipy import ndimage
 from pylab import savefig
 from scipy.interpolate import LinearNDInterpolator, griddata
 import scipy.ndimage
+from astropy.convolution import convolve, Gaussian2DKernel
 
 
 #==============================================================================
@@ -105,6 +106,8 @@ kernel1= np.array([[0, 0, 0, 0],
                    [0, 1, 1, 0],
                    [0, 1, 1, 0],
                    [0, 0, 0, 0]]) 
+                   
+gauss = Gaussian2DKernel(stddev=1)
                 
 #==============================================================================
 # #                             Starting loop
@@ -154,43 +157,55 @@ for myfile in data:
         fig1.savefig(outpathPNG+myfile[-46:-4]+'_iso'+'_seuil'+str(iseuil)+'.png')
         plt.close()
         
-
-        plt.close()
         
 #        matrix[ifile+1:ifile+10,:,:] = np.nan
         
+    ifile+=10
+
+print '---> End morpho'
 #==============================================================================
 # #                             Interpolation 4D
 #==============================================================================
 #        
-        mat = (matrix[10,3,:,:]+matrix[20,3,:,:])
+
+print '---> Interpolation 4d'
+iseuil = 0
+ifile = 0
+t = 80
+
+while ifile <= t:
+    for iseuil in range(7):
+        
+        print 'ifile =', ifile+5, '   iseuil =', iseuil
+        
+        mat = (matrix[ifile,iseuil,:,:] + matrix[ifile+10,iseuil,:,:])
         mat[mat==1], mat[mat==0] = np.nan, 1
         
-        
+#        Alternative 4d
+#        astro = convolve(mat,gauss)        
         
         x=np.indices(mat.shape)[0]
         y=np.indices(mat.shape)[1]
         x=x.flatten()
         y=y.flatten()
         m=mat.flatten()
-#        nn=n.flatten()
-        
-#        d0=np.zeros(m.shape)
-#        d10=np.ones(nn.shape)*10
-#        d5=np.ones(nn.shape)*5
+        #        nn=n.flatten()
+        #        d0=np.zeros(m.shape)
+        #        d10=np.ones(nn.shape)*10
+        #        d5=np.ones(nn.shape)*5 
         
         mat3 = np.vstack((x,y))
         mat3 = np.vstack((mat3,m))
         mat3 = mat3.T
         
         coordsNAN = mat3[np.isnan(mat3[:,2])]
-#        coordsNAN = np.argwhere(np.isnan(mat3))
-#        coords = np.argwhere(~np.isnan(mat3))
+        #        coordsNAN = np.argwhere(np.isnan(mat3))
+        #        coords = np.argwhere(~np.isnan(mat3))
         coords = mat3[~np.isnan(mat3[:,2])]
-#        xx=np.vstack((x,x)).flatten()
-#        yy=np.vstack((y,y)).flatten()
-#        mn=np.vstack((mm,nn)).flatten()
-#        dd=np.vstack((d0,d10)).flatten()
+        #        xx=np.vstack((x,x)).flatten()
+        #        yy=np.vstack((y,y)).flatten()
+        #        mn=np.vstack((mm,nn)).flatten()
+        #        dd=np.vstack((d0,d10)).flatten()
         
         
         interp = griddata((coords[:,0],coords[:,1]), coords[:,2], coordsNAN[:,0:2], method='linear')
@@ -199,22 +214,24 @@ for myfile in data:
         mat2[coordsNAN[:,0].astype(int),coordsNAN[:,1].astype(int)]= interp
         mat2[coords[:,0].astype(int),coords[:,1].astype(int)]=coords[:,2]
         
-#        img = np.zeros(m.shape)
-#        img[x,y]= interp
+        matrix[ifile+5, iseuil] = mat2    
+        
+        fig2 = plt.gcf()
+#        plt.imshow(matrix[ifile,iseuil])
+        plt.imshow(mat2)
+        fig2.savefig(outpathPNG+myfile[-46:-4]+'_iso'+ '_file'+str(ifile+5)+'_seuil'+str(iseuil)+'.png')
+        plt.close()
+            
+            
+            
         
         
-#        xydate1 = np.argwhere(matrix[ifile,iseuil,:,:])
-#        xydate2 = np.argwhere(matrix[ifile,iseuil,:,:])
-#        xydate12 = np.hstack((xydate1,xydate2))
-#        
-#        xyz1 = matrix[ifile, iseuil, xydate1[:,1], xydate1[:,1]].T
-#        
-#        
-    ifile+=10
+        
+    ifile = ifile+10
 #    ifile+=10
-#np.save(outpathNPY+myfile[-46:-4]+'_iso'+'_seuils'+'.npy', matrix)
-
-
+    
+    
+np.save(outpathNPY+myfile[-46:-4]+'_iso'+'_seuils'+'.npy', matrix)
 
 
 #grid = griddata((zrON[:,0], zrON[:,1]), zrON[:,2], zrNANxy, method='linear')   
