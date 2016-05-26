@@ -179,24 +179,105 @@ while ifile <= t:
         print 'ifile =', ifile+5, '   iseuil =', iseuil
         
         #--------- Alternate --------
+        ifile = 0
+        iseuil = 3        
+        mat = matrix
+        matt = matrix
         
-#        d1 = matrix[ifile,iseuil,:,:]
-#        d2 = matrix[ifile+10,iseuil,:,:]
-#        
+        d1 = mat[ifile,iseuil,:,:]
+        d2 = mat[ifile+10,iseuil,:,:]
+        
 #        d1[d1==0]=2
-#        d1[d1==1]=0
-#        
+        d1[d1==1]=2
+        
 #        d2[d2==0]=3
-#        d2[d2==1]=0
+        d2[d2==1]=3
+        
+        # (-3)--> d1 change. (2) --> d2 change. (0) --> no change (plume). (-1) --> no change (else)
+        d12 = d1 - d2
+        
+        # -- d1 direction --
+        d1[d1==0]=1  
+        d1[d1==2]=0
+        
+        # -- d2 direction --
+#        d2[d2==0]=1
+        d2[d2==3]=1
+
+        # d1 construction du format x, y ,z 
+        x1=np.indices(d1.shape)[0]
+        y1=np.indices(d1.shape)[1]
+        x1=x1.flatten()
+        y1=y1.flatten()
+        m1=d1.flatten()
+        
+        mat31 = np.vstack((x1,y1))
+        mat31 = np.vstack((mat31,m1))
+        mat31 = mat31.T
+        
+        # d2 construction du format x, y ,z 
+        x2=np.indices(d2.shape)[0]
+        y2=np.indices(d2.shape)[1]
+        x2=x2.flatten()
+        y2=y2.flatten()
+        m2=d2.flatten()        
+        
+        mat32 = np.vstack((x2,y2))
+        mat32 = np.vstack((mat32,m2))
+        mat32 = mat32.T
+        
+        # d12 construction du format x, y ,z 
+        x12=np.indices(d12.shape)[0]
+        y12=np.indices(d12.shape)[1]
+        x12=x12.flatten()
+        y12=y12.flatten()
+        m12=d12.flatten()        
+        
+        mat312 = np.vstack((x12,y12))
+        mat312 = np.vstack((mat312,m12))
+        mat312 = mat312.T
+        
+        coordsd1INT = mat312[mat312[:,2]==-3]
+        coordsd2INT = mat312[mat312[:,2]==2]
+#        coordsINT = mat3[np.isnan(mat3[:,2])]
+        coordsd1 = mat312[mat312[:,2]!=-3]
+        coordsd2 = mat312[mat312[:,2]!=2]
+
+        print 'interpolation d1 --->' 
+        interpd1 = griddata((coordsd1[:,0], coordsd1[:,1]), coordsd1[:,2], coordsd1INT[:,0:2], method='linear')
+        print 'interpolation d2 --->'
+        interpd2 = griddata((coordsd2[:,0], coordsd2[:,1]), coordsd2[:,2], coordsd2INT[:,0:2], method='linear')        
+        
+#        matd1 = np.zeros(d1.shape)
+#        matd1[coordsd1INT[:,0].astype(int),coordsd1INT[:,1].astype(int)]= interpd1
+#        matd1[coordsd1[:,0].astype(int),coordsd1[:,1].astype(int)]=coordsd1[:,2]
+        
+        matd12 = np.zeros(d1.shape)
+        matd12[coordsd1[:,0].astype(int),coordsd1[:,1].astype(int)]=coordsd1[:,2]
+        matd12[coordsd2[:,0].astype(int),coordsd2[:,1].astype(int)]=coordsd2[:,2]
+        matd12[coordsd1INT[:,0].astype(int),coordsd1INT[:,1].astype(int)]= interpd1
+        matd12[coordsd2INT[:,0].astype(int),coordsd2INT[:,1].astype(int)]= interpd2
+
+        
+        
+        matrix[ifile+5, iseuil] = matd12
+        
+        #-----------------------------
+        
+        
+        
 #        
-#        # (-3)--> d1 progress. (2) --> d2 progress. (0) --> no change (plume). (-1) --> no change (else)
-#        d12 = d1 - d2
+#        mat = (matrix[ifile,iseuil,:,:] + matrix[ifile+10,iseuil,:,:])
+#        mat[mat==1], mat[mat==0] = np.nan, 1
 #        
-#        x=np.indices(d12.shape)[0]
-#        y=np.indices(d12.shape)[1]
+##        Alternative 4d
+##        astro = convolve(mat,gauss)        
+#        
+#        x=np.indices(mat.shape)[0]
+#        y=np.indices(mat.shape)[1]
 #        x=x.flatten()
 #        y=y.flatten()
-#        m=d12.flatten()
+#        m=mat.flatten()
 #        #        nn=n.flatten()
 #        #        d0=np.zeros(m.shape)
 #        #        d10=np.ones(nn.shape)*10
@@ -222,51 +303,8 @@ while ifile <= t:
 #        mat2[coordsNAN[:,0].astype(int),coordsNAN[:,1].astype(int)]= interp
 #        mat2[coords[:,0].astype(int),coords[:,1].astype(int)]=coords[:,2]
 #        
-#        matrix[ifile+5, iseuil] = mat2 
-        
-        #-----------------------------
-        
-        
-        
-        
-        mat = (matrix[ifile,iseuil,:,:] + matrix[ifile+10,iseuil,:,:])
-        mat[mat==1], mat[mat==0] = np.nan, 1
-        
-#        Alternative 4d
-#        astro = convolve(mat,gauss)        
-        
-        x=np.indices(mat.shape)[0]
-        y=np.indices(mat.shape)[1]
-        x=x.flatten()
-        y=y.flatten()
-        m=mat.flatten()
-        #        nn=n.flatten()
-        #        d0=np.zeros(m.shape)
-        #        d10=np.ones(nn.shape)*10
-        #        d5=np.ones(nn.shape)*5 
-        
-        mat3 = np.vstack((x,y))
-        mat3 = np.vstack((mat3,m))
-        mat3 = mat3.T
-        
-        coordsNAN = mat3[np.isnan(mat3[:,2])]
-        #        coordsNAN = np.argwhere(np.isnan(mat3))
-        #        coords = np.argwhere(~np.isnan(mat3))
-        coords = mat3[~np.isnan(mat3[:,2])]
-        #        xx=np.vstack((x,x)).flatten()
-        #        yy=np.vstack((y,y)).flatten()
-        #        mn=np.vstack((mm,nn)).flatten()
-        #        dd=np.vstack((d0,d10)).flatten()
-        
-        
-        interp = griddata((coords[:,0],coords[:,1]), coords[:,2], coordsNAN[:,0:2], method='linear')
-        
-        mat2 = np.zeros(mat.shape)
-        mat2[coordsNAN[:,0].astype(int),coordsNAN[:,1].astype(int)]= interp
-        mat2[coords[:,0].astype(int),coords[:,1].astype(int)]=coords[:,2]
-        
-        matrix[ifile+5, iseuil] = mat2    
-        
+#        matrix[ifile+5, iseuil] = mat2    
+#        
         fig2 = plt.gcf()
 #        plt.imshow(matrix[ifile,iseuil])
         plt.imshow(mat2)

@@ -37,11 +37,13 @@ else: homepath = os.environ['HOMEPATH']
 if os.name == 'nt':
     path = homepath+'\\SATELITIME\\data\\contours\\interp_npy\\'
     outpathNPY = homepath+'\\SATELITIME\\data\\contours\\iso_npy\\'
-    outpathPNG = homepath+'\\SATELITIME\\data\\contours\\iso_png\\'
+    outpathPNG = homepath+'\\SATELITIME\\data\\contours\\iso_png2\\'
+    outpathPNG2 = homepath+'\\SATELITIME\\data\\contours\\iso_png2\\'
 else : 
     path = homepath+'/SATELITIME/data/contours/interp_npy/'
     outpathNPY = homepath+'/SATELITIME/data/contours/iso_npy/'
-    outpathPNG = homepath+'/SATELITIME/data/contours/iso_png/'
+    outpathPNG = homepath+'/SATELITIME/data/contours/iso_png2/'
+    outpathPNG2 = homepath+'/SATELITIME/data/contours/iso_png2/'
     
 print 'starting...'
 print path
@@ -110,7 +112,7 @@ kernel1= np.array([[0, 0, 0, 0],
 gauss = Gaussian2DKernel(stddev=1)
                 
 #==============================================================================
-# #                             Starting loop
+# #                         Morpho & interp 2D
 #==============================================================================
                    
 for myfile in data:
@@ -154,7 +156,7 @@ for myfile in data:
         fig1 = plt.gcf()
 #        plt.imshow(matrix[ifile,iseuil])
         plt.imshow(result2)
-        fig1.savefig(outpathPNG+myfile[-46:-4]+'_iso'+'_seuil'+str(iseuil)+'.png')
+        fig1.savefig(outpathPNG+myfile[-46:-4]+'_iso'+ '_file'+str(ifile)+'_seuil'+str(iseuil)+'.png')
         plt.close()
         
         
@@ -179,98 +181,141 @@ while ifile <= t:
         print 'ifile =', ifile+5, '   iseuil =', iseuil
         
         #--------- Alternate --------
+       
+        mat = np.copy(matrix)
         
-#        d1 = matrix[ifile,iseuil,:,:]
-#        d2 = matrix[ifile+10,iseuil,:,:]
+        d1 = mat[ifile,iseuil,:,:]
+        d2 = mat[ifile+10,iseuil,:,:]
+        
+        d1[d1==1]=99
+        d1[d1==0]=2
+        d1[d1==99]=0
+        
+        d2[d2==1]=99
+        d2[d2==0]=3
+        d2[d2==99]=0
+        
+        # (-3)--> d1 change. (2) --> d2 change. (0) --> no change (plume). (-1) --> no change (else)
+        d12 = d1 - d2
+        
+        
+        # --- d12 construction du format x, y ,z ---
+        # valeurs d'interpolation pour d1
+        d12[d12==0] = 1
+        d12[d12==-1] = 0
+    
+#        xyd1 = np.asarray(np.where(d12==-3)).T
+#        xyd2 = np.asarray(np.where(d12==2)).T
+#        xyd12 = np.asarray(np.where(~d12!=-3)).T
+        
+        x12=np.indices(d12.shape)[0]
+        y12=np.indices(d12.shape)[1]
+        x12=x12.flatten()
+        y12=y12.flatten()
+        m12=d12.flatten()        
+        
+        mat312 = np.vstack((x12,y12))
+        mat312 = np.vstack((mat312,m12))
+        mat312 = mat312.T
+        
+        mat312INT = np.copy(mat312)
+        
+        coordsd1INT = mat312INT[mat312INT[:,2]==-3]
+        coordsd2INT = mat312INT[mat312INT[:,2]==2]
+#        coordsINT = mat3[np.isnan(mat3[:,2])]
+        
+        mat312s1 = np.copy(mat312)
+        mat312s2 = np.copy(mat312)        
+        
+        #Valeurs d'interpolation pour d1
+        coordsd1 = mat312s1[mat312s1[:,2]!=-3]
+        coordsd1[:,2][coordsd1[:,2]==2] = 0
+        #Valeurs d'interpolation pour d2. On veut le gradient inverse à d1.
+        coordsd2 = mat312s2[mat312s2[:,2]!=2]
+        coordsd2[:,2][coordsd2[:,2]==-3] = 0
+        coordsd2[:,2][coordsd2[:,2]==1] = 99
+        coordsd2[:,2][coordsd2[:,2]==0] = 1
+        coordsd2[:,2][coordsd2[:,2]==99] = 0
+
+        
+        print 'interpolation d1 --->' 
+#        interpd1 = griddata((coordsd1[:,0], coordsd1[:,1]), coordsd1[:,2], coordsd1INT[:,0:2], method='linear')
+        interpd1 = griddata((coordsd1[:,0], coordsd1[:,1]), coordsd1[:,2], coordsd1INT[:,0:2], method='linear')
+
+        
+        print 'interpolation d2 --->'
+        interpd2 = griddata((coordsd2[:,0], coordsd2[:,1]), coordsd2[:,2], coordsd2INT[:,0:2], method='linear')        
+        
+#        matd1 = np.zeros(d1.shape)
+#        matd1[coordsd1INT[:,0].astype(int),coordsd1INT[:,1].astype(int)]= interpd1
+#        matd1[coordsd1[:,0].astype(int),coordsd1[:,1].astype(int)]=coordsd1[:,2]
+        
+        # ***
+#        matd12 = np.zeros(d1.shape)
+#        matd12[coordsd1[:,0].astype(int),coordsd1[:,1].astype(int)]=coordsd1[:,2]
+#        matd12[coordsd2[:,0].astype(int),coordsd2[:,1].astype(int)]=coordsd2[:,2]
+#        matd12[coordsd1INT[:,0].astype(int),coordsd1INT[:,1].astype(int)]= interpd1
+#        matd12[coordsd2INT[:,0].astype(int),coordsd2INT[:,1].astype(int)]= interpd2
+        # ***
+        
+        time = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+        matALL = np.zeros(d1.shape)
+        
+        for t in range (0,9):
+            print '4d stacking ....  '+str(time[t])            
+            
+            matdXa = 'matd12a'+str(i)
+            matdXb = 'matd12b'+str(i)
+            matdXa, matdXb  = np.zeros(d1.shape), np.zeros(d1.shape)
+            
+            #Set commun values in the arrays.
+            matdXa[coordsd1[:,0].astype(int),coordsd1[:,1].astype(int)]=coordsd1[:,2]
+            matdXb[coordsd2[:,0].astype(int),coordsd2[:,1].astype(int)]=coordsd2[:,2]
+            
+            #Set new interpolated values in the arrays.
+            matdXa[coordsd1INT[:,0].astype(int),coordsd1INT[:,1].astype(int)]= interpd1
+            matdXb[coordsd2INT[:,0].astype(int),coordsd2INT[:,1].astype(int)]= interpd2
+            
+            #Select d1 and d2 values for time[t].
+            a = np.zeros(d1.shape)
+            b = np.zeros(d1.shape)
+            
+            a = a+(matdXa>time[t])
+            b = b+(matdXb<time[t])
+#            matdXb[matdXb<time[t]]=-1
+#            matdXb[matdXb>=time[t]]=0
+#            matdXb[matdXb==-1]=1
+#            matdXa[matdXa>time[t]]=10-time[t]
+#            matdXa[matdXa<=time[t]]=0
+            #Complie d1 and d2 values in binary (0,1) matrix.
+            matd12 = a + b
+            
+            #Conversion of values=2 to 1, to get only 1 or 0 values.
+#            matd12[matd12==2]=1
+            
+            matrix[ifile+t+1, iseuil] = matd12
+            matALL = matALL+matd12
+            
+
+        
+#        matd122 = np.zeros(d1.shape)
+#        matd122[coordsd1INT[:,0].astype(int),coordsd1INT[:,1].astype(int)]= interpd1
+#        matd122[coordsd2INT[:,0].astype(int),coordsd2INT[:,1].astype(int)]= interpd2
 #        
-#        d1[d1==0]=2
-#        d1[d1==1]=0
-#        
-#        d2[d2==0]=3
-#        d2[d2==1]=0
-#        
-#        # (-3)--> d1 progress. (2) --> d2 progress. (0) --> no change (plume). (-1) --> no change (else)
-#        d12 = d1 - d2
-#        
-#        x=np.indices(d12.shape)[0]
-#        y=np.indices(d12.shape)[1]
-#        x=x.flatten()
-#        y=y.flatten()
-#        m=d12.flatten()
-#        #        nn=n.flatten()
-#        #        d0=np.zeros(m.shape)
-#        #        d10=np.ones(nn.shape)*10
-#        #        d5=np.ones(nn.shape)*5 
-#        
-#        mat3 = np.vstack((x,y))
-#        mat3 = np.vstack((mat3,m))
-#        mat3 = mat3.T
-#        
-#        coordsNAN = mat3[np.isnan(mat3[:,2])]
-#        #        coordsNAN = np.argwhere(np.isnan(mat3))
-#        #        coords = np.argwhere(~np.isnan(mat3))
-#        coords = mat3[~np.isnan(mat3[:,2])]
-#        #        xx=np.vstack((x,x)).flatten()
-#        #        yy=np.vstack((y,y)).flatten()
-#        #        mn=np.vstack((mm,nn)).flatten()
-#        #        dd=np.vstack((d0,d10)).flatten()
-#        
-#        
-#        interp = griddata((coords[:,0],coords[:,1]), coords[:,2], coordsNAN[:,0:2], method='linear')
-#        
-#        mat2 = np.zeros(mat.shape)
-#        mat2[coordsNAN[:,0].astype(int),coordsNAN[:,1].astype(int)]= interp
-#        mat2[coords[:,0].astype(int),coords[:,1].astype(int)]=coords[:,2]
-#        
-#        matrix[ifile+5, iseuil] = mat2 
+#        matd123 = np.zeros(d1.shape)
+#        matd123[coordsd1INT[:,0].astype(int),coordsd1INT[:,1].astype(int)]= interpd1
+#        matd123[coordsd2INT[:,0].astype(int),coordsd2INT[:,1].astype(int)]= interpd2
+     
+        
+        
+#        matrix[ifile+5, iseuil] = matd12
         
         #-----------------------------
-        
-        
-        
-        
-        mat = (matrix[ifile,iseuil,:,:] + matrix[ifile+10,iseuil,:,:])
-        mat[mat==1], mat[mat==0] = np.nan, 1
-        
-#        Alternative 4d
-#        astro = convolve(mat,gauss)        
-        
-        x=np.indices(mat.shape)[0]
-        y=np.indices(mat.shape)[1]
-        x=x.flatten()
-        y=y.flatten()
-        m=mat.flatten()
-        #        nn=n.flatten()
-        #        d0=np.zeros(m.shape)
-        #        d10=np.ones(nn.shape)*10
-        #        d5=np.ones(nn.shape)*5 
-        
-        mat3 = np.vstack((x,y))
-        mat3 = np.vstack((mat3,m))
-        mat3 = mat3.T
-        
-        coordsNAN = mat3[np.isnan(mat3[:,2])]
-        #        coordsNAN = np.argwhere(np.isnan(mat3))
-        #        coords = np.argwhere(~np.isnan(mat3))
-        coords = mat3[~np.isnan(mat3[:,2])]
-        #        xx=np.vstack((x,x)).flatten()
-        #        yy=np.vstack((y,y)).flatten()
-        #        mn=np.vstack((mm,nn)).flatten()
-        #        dd=np.vstack((d0,d10)).flatten()
-        
-        
-        interp = griddata((coords[:,0],coords[:,1]), coords[:,2], coordsNAN[:,0:2], method='linear')
-        
-        mat2 = np.zeros(mat.shape)
-        mat2[coordsNAN[:,0].astype(int),coordsNAN[:,1].astype(int)]= interp
-        mat2[coords[:,0].astype(int),coords[:,1].astype(int)]=coords[:,2]
-        
-        matrix[ifile+5, iseuil] = mat2    
-        
+#        Saving numpy matrix.
         fig2 = plt.gcf()
-#        plt.imshow(matrix[ifile,iseuil])
-        plt.imshow(mat2)
-        fig2.savefig(outpathPNG+myfile[-46:-4]+'_iso'+ '_file'+str(ifile+5)+'_seuil'+str(iseuil)+'.png')
+
+        plt.imshow(matALL)
+        fig2.savefig(outpathPNG2+myfile[-46:-4]+'_iso4d'+ '_file'+str(ifile+5)+'_seuil'+str(iseuil)+'.png')
         plt.close()
             
             
@@ -282,17 +327,7 @@ while ifile <= t:
 #    ifile+=10
     
     
-np.save(outpathNPY+myfile[-46:-4]+'_iso'+'_seuils'+'.npy', matrix)
-
-
-#grid = griddata((zrON[:,0], zrON[:,1]), zrON[:,2], zrNANxy, method='linear')   
-#   
-#matrix = np.zeros(zr.shape)
-#matrix[zrNANxy[:,0],zrNANxy[:,1]]= grid
-#matrix[zrON[:,0].astype(int),zrON[:,1].astype(int)]=zrON[:,2]
-   
-   # Ecrase les valeurs interpolées de la terre par le masque terre (en np.nan).
-#matrix = matrix+landmask
+np.save(outpathNPY+myfile[-46:-4]+'_morpho'+'_seuils'+'_interp4d'+'.npy', matrix)
 
 
 
