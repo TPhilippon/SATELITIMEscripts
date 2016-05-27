@@ -37,12 +37,12 @@ else: homepath = os.environ['HOMEPATH']
 if os.name == 'nt':
     path = homepath+'\\SATELITIME\\data\\contours\\interp_npy\\'
     outpathNPY = homepath+'\\SATELITIME\\data\\contours\\iso_npy\\'
-    outpathPNG = homepath+'\\SATELITIME\\data\\contours\\iso_png2\\'
+    outpathPNG = homepath+'\\SATELITIME\\data\\contours\\iso_png\\'
     outpathPNG2 = homepath+'\\SATELITIME\\data\\contours\\iso_png2\\'
 else : 
     path = homepath+'/SATELITIME/data/contours/interp_npy/'
     outpathNPY = homepath+'/SATELITIME/data/contours/iso_npy/'
-    outpathPNG = homepath+'/SATELITIME/data/contours/iso_png2/'
+    outpathPNG = homepath+'/SATELITIME/data/contours/iso_png/'
     outpathPNG2 = homepath+'/SATELITIME/data/contours/iso_png2/'
     
 print 'starting...'
@@ -156,7 +156,9 @@ for myfile in data:
         fig1 = plt.gcf()
 #        plt.imshow(matrix[ifile,iseuil])
         plt.imshow(result2)
-        fig1.savefig(outpathPNG+myfile[-46:-4]+'_iso'+ '_file'+str(ifile)+'_seuil'+str(iseuil)+'.png')
+        SEUIL = int(seuils[iseuil]*100)
+        fig1.savefig(outpathPNG2+myfile[-52:-4]+'_iso'+'_seuil'+str(format(SEUIL,'03'))+'_file'+str(format(ifile,'02'))+'.png')
+
         plt.close()
         
         
@@ -173,10 +175,12 @@ print '---> End morpho'
 print '---> Interpolation 4d'
 iseuil = 0
 ifile = 0
-t = 80
+i = 80
 
-while ifile <= t:
-    for iseuil in range(7):
+#while ifile <= i:  #Files loop
+for myfile in data:
+    
+    for iseuil in range(7):   #Concentration seuils loop
         
         print 'ifile =', ifile+5, '   iseuil =', iseuil
         
@@ -261,7 +265,7 @@ while ifile <= t:
         time = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
         matALL = np.zeros(d1.shape)
         
-        for t in range (0,9):
+        for t in range (0,9):   #4D seuils loop
             print '4d stacking ....  '+str(time[t])            
             
             matdXa = 'matd12a'+str(i)
@@ -289,12 +293,19 @@ while ifile <= t:
 #            matdXa[matdXa<=time[t]]=0
             #Complie d1 and d2 values in binary (0,1) matrix.
             matd12 = a + b
-            
+            matd12[matd12==2]=1
             #Conversion of values=2 to 1, to get only 1 or 0 values.
 #            matd12[matd12==2]=1
             
             matrix[ifile+t+1, iseuil] = matd12
             matALL = matALL+matd12
+            
+            fig3 = plt.gcf()
+
+            plt.imshow(matd12)
+            SEUIL = int(seuils[iseuil]*100)
+            fig3.savefig(outpathPNG2+myfile[-52:-4]+'_iso'+'_seuil'+str(format(SEUIL,'03'))+'_file'+str(format(ifile+t+1, '02'))+'.png')
+            plt.close()
             
 
         
@@ -312,22 +323,21 @@ while ifile <= t:
         
         #-----------------------------
 #        Saving numpy matrix.
-        fig2 = plt.gcf()
+    fig2 = plt.gcf()
 
-        plt.imshow(matALL)
-        fig2.savefig(outpathPNG2+myfile[-46:-4]+'_iso4d'+ '_file'+str(ifile+5)+'_seuil'+str(iseuil)+'.png')
-        plt.close()
+    plt.imshow(matALL)
+    SEUIL = int(seuils[iseuil]*100)
+    fig2.savefig(outpathPNG2+myfile[-52:-4]+'_iso'+'_seuil'+str(format(SEUIL,'03'))+'_file'+str(format(ifile,'02'))+'.png')
+    plt.close()
             
             
-            
-        
-        
-        
     ifile = ifile+10
 #    ifile+=10
     
     
-np.save(outpathNPY+myfile[-46:-4]+'_morpho'+'_seuils'+'_interp4d'+'.npy', matrix)
+np.save(outpathNPY+myfile[-52:-4]+'_morpho'+'_seuils'+'_interp4d'+'.npy', matrix)
+
+
 
 
 
