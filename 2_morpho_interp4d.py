@@ -39,11 +39,15 @@ if os.name == 'nt':
     outpathNPY = homepath+'\\SATELITIME\\data\\contours\\iso_npy\\'
     outpathPNG = homepath+'\\SATELITIME\\data\\contours\\iso_png\\'
     outpathPNG2 = homepath+'\\SATELITIME\\data\\contours\\iso_png2\\'
+    outpathisoALL = homepath+'\\SATELITIME\\data\\contours\\iso_ALL\\'
+    outpathisoALLf = homepath+'\\SATELITIME\\data\\contours\\iso_ALLf\\'
 else : 
     path = homepath+'/SATELITIME/data/contours/interp_npy/'
     outpathNPY = homepath+'/SATELITIME/data/contours/iso_npy/'
     outpathPNG = homepath+'/SATELITIME/data/contours/iso_png/'
     outpathPNG2 = homepath+'/SATELITIME/data/contours/iso_png2/'
+    outpathisoALL = homepath+'/SATELITIME/data/contours/iso_ALL/'
+    outpathisoALLf = homepath+'/SATELITIME/data/contours/iso_ALLf/'
     
 print 'starting...'
 print path
@@ -73,7 +77,7 @@ new_map_gray_chl = mpl.colors.LinearSegmentedColormap.from_list('new_map_gray_ch
 #matrix = np.zeros(10, dtype= [('date', 'S15', 1), ('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
 #matrix = np.zeros(10, dtype= [('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
 
-matrix = np.zeros([91, 7, 350,500])
+matrix = np.zeros([(len(data)-1)*10+1, 7, 350,500])      # 91 pour 10 fichiers.
 
 # Alternate : seuilx100 
 seuils = np.array([(0.05), (0.10), (0.15), (0.20), (0.30), (0.40), (5)])
@@ -157,7 +161,7 @@ for myfile in data:
 #        plt.imshow(matrix[ifile,iseuil])
         plt.imshow(result2)
         SEUIL = int(seuils[iseuil]*100)
-        fig1.savefig(outpathPNG2+myfile[-52:-4]+'_iso'+'_seuil'+str(format(SEUIL,'03'))+'_file'+str(format(ifile,'02'))+'.png')
+        fig1.savefig(outpathPNG2+'iso'+'_seuil'+str(format(SEUIL,'03'))+'_file'+str(format(ifile,'02'))+'_'+myfile[-52:-4]+'.png')
 
         plt.close()
         
@@ -175,10 +179,9 @@ print '---> End morpho'
 print '---> Interpolation 4d'
 iseuil = 0
 ifile = 0
-i = 80
 
 #while ifile <= i:  #Files loop
-for myfile in data:
+while ifile<((len(data)-1)*10):   
     
     for iseuil in range(7):   #Concentration seuils loop
         
@@ -263,13 +266,10 @@ for myfile in data:
         # ***
         
         time = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-        matALL = np.zeros(d1.shape)
         
         for t in range (0,9):   #4D seuils loop
             print '4d stacking ....  '+str(time[t])            
             
-            matdXa = 'matd12a'+str(i)
-            matdXb = 'matd12b'+str(i)
             matdXa, matdXb  = np.zeros(d1.shape), np.zeros(d1.shape)
             
             #Set commun values in the arrays.
@@ -298,16 +298,14 @@ for myfile in data:
 #            matd12[matd12==2]=1
             
             matrix[ifile+t+1, iseuil] = matd12
-            matALL = matALL+matd12
+#            matALL = matALL+matd12
             
-            fig3 = plt.gcf()
+            fig2 = plt.gcf()
 
             plt.imshow(matd12)
             SEUIL = int(seuils[iseuil]*100)
-            fig3.savefig(outpathPNG2+myfile[-52:-4]+'_iso'+'_seuil'+str(format(SEUIL,'03'))+'_file'+str(format(ifile+t+1, '02'))+'.png')
+            fig2.savefig(outpathPNG2+'iso'+'_seuil'+str(format(SEUIL,'03'))+'_file'+str(format(ifile+t+1, '02'))+'_'+myfile[-52:-4]+'.png')
             plt.close()
-            
-
         
 #        matd122 = np.zeros(d1.shape)
 #        matd122[coordsd1INT[:,0].astype(int),coordsd1INT[:,1].astype(int)]= interpd1
@@ -323,23 +321,79 @@ for myfile in data:
         
         #-----------------------------
 #        Saving numpy matrix.
-    fig2 = plt.gcf()
-
-    plt.imshow(matALL)
-    SEUIL = int(seuils[iseuil]*100)
-    fig2.savefig(outpathPNG2+myfile[-52:-4]+'_iso'+'_seuil'+str(format(SEUIL,'03'))+'_file'+str(format(ifile,'02'))+'.png')
-    plt.close()
             
-            
-    ifile = ifile+10
-#    ifile+=10
+    ifile+=10
     
     
 np.save(outpathNPY+myfile[-52:-4]+'_morpho'+'_seuils'+'_interp4d'+'.npy', matrix)
 
+#==============================================================================
+# #                             Stacking 
+#==============================================================================
+#  
+# ============== DO NOT DELETE ==============
+# full --------------------------------------
 
+print 'full stacking......'
+ifile = 0      #0 ou 1 pour CAS 1 & 2.
 
+while ifile<((len(data)-1)*10):
 
+    for time in range (0,10):    #(0,9) CAS 2 ;;; (0,10) CAS 1
+
+        matALL = np.zeros(d1.shape)        
+#        ifile += 1  #CAS 1
+        
+        for iseuil in range (0,7):
+
+            matALL = matALL + matrix[ifile, iseuil,:,:]
+           
+        #Save stack of 7 tresholds for 1 date. 
+        fig3 = plt.gcf()
+        plt.imshow(matALL)
+        fig3.savefig(outpathisoALLf+'iso'+'_seuilALLf'+'_file'+str(format(ifile, '02'))+'_'+myfile[-52:-4]+'.png')
+        ifile += 1      #CAS 2
+    
+#    ifile += 1      #CAS 2
+print '...done'
+
+# ------------------------------------------
+# ================ DO NOT DELETE ===========
+# not full ---------------------------------
+
+print 'partial stacking......'
+ifile = 1      #0 ou 1 pour CAS 1 & 2.
+
+while ifile<((len(data)-1)*10):
+
+    for time in range (0,9):    #(0,9) CAS 2 ;;; (0,10) CAS 1
+
+        matALL = np.zeros(d1.shape)        
+#        ifile += 1  #CAS 1
+        
+        for iseuil in range (0,7):
+
+            matALL = matALL + matrix[ifile, iseuil,:,:]
+           
+        #Save stack of 7 tresholds for 1 date. 
+        fig3 = plt.gcf()
+        plt.imshow(matALL)
+        fig3.savefig(outpathisoALLf+'iso'+'_seuilALL'+'_file'+str(format(ifile, '02'))+'_'+myfile[-52:-4]+'.png')
+        ifile += 1      #CAS 2
+    
+    ifile += 1      #CAS 2    
+print '...done'
+
+# ------------------------------------------
+
+        
+    
+#        fig3 = plt.gcf()
+#
+#    plt.imshow(matALL)
+#    SEUIL = int(seuils[iseuil]*100)
+#    fig3.savefig(outpathPNG2+myfile[-52:-4]+'_iso'+'_seuil'+str(format(SEUIL,'03'))+'_file'+str(format(ifile,'02'))+'.png')
+#    plt.close()
 
 print 'end'
 
