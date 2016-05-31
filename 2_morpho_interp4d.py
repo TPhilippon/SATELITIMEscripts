@@ -150,7 +150,7 @@ for myfile in data:
         result1= scipy.ndimage.morphology.binary_closing(result, structure=kernel3)
         result2= np.invert(result1)        
         
-        # ------
+        # ------ testeur :
 #        result0 = scipy.ndimage.morphology.binary_fill_holes(zre1, structure=kernel3)
 #        #Closing islands and headland (cap)
 #        result = np.invert(result0)
