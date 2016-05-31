@@ -33,7 +33,7 @@ else: homepath = os.environ['HOMEPATH']
 
 #homepath = os.environ['HOME']  # Windows = os.environ['HOMEPATH'] ;;; Linux = os.environ['HOME']
 if os.name == 'nt':
-    path = homepath+'\\SATELITIME\\data\\ZR\\'
+    path = 'Y:\\SATELITIME\\data\\ZR\\aqua_chl_R32_9km_noint\\'
     outpath = homepath+'\\SATELITIME\\data\\contours\\interp_png\\'
     outpathNPY = homepath+'\\SATELITIME\\data\\contours\\interp_npy\\'
     landpath = homepath+'\\SATELITIME\\data\\'
@@ -107,7 +107,7 @@ new_map_gray_chl = mpl.colors.LinearSegmentedColormap.from_list('new_map_gray_ch
 #new_map_gray_chl = mpl.colors.LinearSegmentedColormap.from_list('new_map_gray_chl', colors, N=256) 
 
 #==============================================================================
-# #                             Starting loop
+# #                          **** Convolve ****
 #==============================================================================
 
 for myfile in data:

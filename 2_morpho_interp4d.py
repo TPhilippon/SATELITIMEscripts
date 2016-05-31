@@ -161,7 +161,7 @@ for myfile in data:
 #        plt.imshow(matrix[ifile,iseuil])
         plt.imshow(result2)
         SEUIL = int(seuils[iseuil]*100)
-        fig1.savefig(outpathPNG2+'iso'+'_seuil'+str(format(SEUIL,'03'))+'_file'+str(format(ifile,'02'))+'_'+myfile[-52:-4]+'.png')
+        fig1.savefig(outpathPNG2+'iso'+'_seuil'+str(format(SEUIL,'03'))+'_file'+str(format(ifile,'04'))+'_'+myfile[-52:-4]+'.png')
 
         plt.close()
         
@@ -268,7 +268,7 @@ while ifile<((len(data)-1)*10):
         time = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
         
         for t in range (0,9):   #4D seuils loop
-            print '4d stacking ....  '+str(time[t])            
+            print '4d interp....  time '+str(time[t])            
             
             matdXa, matdXb  = np.zeros(d1.shape), np.zeros(d1.shape)
             
@@ -304,7 +304,7 @@ while ifile<((len(data)-1)*10):
 
             plt.imshow(matd12)
             SEUIL = int(seuils[iseuil]*100)
-            fig2.savefig(outpathPNG2+'iso'+'_seuil'+str(format(SEUIL,'03'))+'_file'+str(format(ifile+t+1, '02'))+'_'+myfile[-52:-4]+'.png')
+            fig2.savefig(outpathPNG2+'iso'+'_seuil'+str(format(SEUIL,'03'))+'_file'+str(format(ifile+t+1, '04'))+'_'+myfile[-52:-4]+'.png')
             plt.close()
         
 #        matd122 = np.zeros(d1.shape)
@@ -351,7 +351,7 @@ while ifile<((len(data)-1)*10):
         #Save stack of 7 tresholds for 1 date. 
         fig3 = plt.gcf()
         plt.imshow(matALL)
-        fig3.savefig(outpathisoALLf+'iso'+'_seuilALLf'+'_file'+str(format(ifile, '02'))+'_'+myfile[-52:-4]+'.png')
+        fig3.savefig(outpathisoALLf+'iso'+'_seuilALLf'+'_file'+str(format(ifile, '04'))+'_'+myfile[-52:-4]+'.png')
         ifile += 1      #CAS 2
     
 #    ifile += 1      #CAS 2
@@ -376,9 +376,9 @@ while ifile<((len(data)-1)*10):
             matALL = matALL + matrix[ifile, iseuil,:,:]
            
         #Save stack of 7 tresholds for 1 date. 
-        fig3 = plt.gcf()
+        fig4 = plt.gcf()
         plt.imshow(matALL)
-        fig3.savefig(outpathisoALLf+'iso'+'_seuilALL'+'_file'+str(format(ifile, '02'))+'_'+myfile[-52:-4]+'.png')
+        fig4.savefig(outpathisoALL+'iso'+'_seuilALL'+'_file'+str(format(ifile, '04'))+'_'+myfile[-52:-4]+'.png')
         ifile += 1      #CAS 2
     
     ifile += 1      #CAS 2    
