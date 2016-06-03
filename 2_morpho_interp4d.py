@@ -77,7 +77,7 @@ new_map_gray_chl = mpl.colors.LinearSegmentedColormap.from_list('new_map_gray_ch
 #matrix = np.zeros(10, dtype= [('date', 'S15', 1), ('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
 #matrix = np.zeros(10, dtype= [('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
 
-matrix = np.zeros([(len(data)-201)*10+1, 7, 350,500])      # 91 pour 10 fichiers.
+matrix = np.zeros([(len(data))*10+1, 7, 350,500])      # 91 pour 10 fichiers.
 #matrix = np.zeros([(len(data)-201)*10+1, 7, 350,500])
 # Alternate : seuilx100 
 seuils = np.array([(0.05), (0.10), (0.15), (0.20), (0.30), (0.40), (5)])
@@ -174,7 +174,7 @@ for myfile in data:
 #        plt.imshow(matrix[ifile,iseuil])
         plt.imshow(result)
         SEUIL = int(seuils[iseuil]*100)
-        fig1.savefig(outpathPNG2+'iso'+'_seuil'+str(format(SEUIL,'03'))+'_file'+str(format(ifile,'04'))+'_'+myfile[-52:-4]+'.png')
+        fig1.savefig(outpathPNG2+'iso'+'_seuil'+str(format(SEUIL,'03'))+'_file'+str(format(ifile,'04'))+'_'+myfile[-52:-4]+'.png', dpi=300)
 
         plt.close()
         
@@ -317,7 +317,7 @@ while ifile<((len(data)-1)*10):
 
             plt.imshow(matd12)
             SEUIL = int(seuils[iseuil]*100)
-            fig2.savefig(outpathPNG2+'iso'+'_seuil'+str(format(SEUIL,'03'))+'_file'+str(format(ifile+t+1, '04'))+'_'+myfile[-52:-4]+'.png')
+            fig2.savefig(outpathPNG2+'iso'+'_seuil'+str(format(SEUIL,'03'))+'_file'+str(format(ifile+t+1, '04'))+'_'+myfile[-52:-4]+'.png', dpi=300)
             plt.close()
         
 #        matd122 = np.zeros(d1.shape)
@@ -364,7 +364,7 @@ while ifile<((len(data)-1)*10):
         #Save stack of 7 tresholds for 1 date. 
         fig3 = plt.gcf()
         plt.imshow(matALL)
-        fig3.savefig(outpathisoALLf+'iso'+'_seuilALLf'+'_file'+str(format(ifile, '04'))+'_'+myfile[-52:-4]+'.png')
+        fig3.savefig(outpathisoALLf+'iso'+'_seuilALLf'+'_file'+str(format(ifile, '04'))+'_'+myfile[-52:-4]+'.png', dpi=300)
         ifile += 1      #CAS 2
     
 #    ifile += 1      #CAS 2
@@ -391,7 +391,7 @@ while ifile<((len(data)-1)*10):
         #Save stack of 7 tresholds for 1 date. 
         fig4 = plt.gcf()
         plt.imshow(matALL)
-        fig4.savefig(outpathisoALL+'iso'+'_seuilALL'+'_file'+str(format(ifile, '04'))+'_'+myfile[-52:-4]+'.png')
+        fig4.savefig(outpathisoALL+'iso'+'_seuilALL'+'_file'+str(format(ifile, '04'))+'_'+myfile[-52:-4]+'.png', dpi=300)
         ifile += 1      #CAS 2
     
     ifile += 1      #CAS 2    
