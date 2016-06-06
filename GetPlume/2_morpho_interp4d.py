@@ -77,8 +77,8 @@ new_map_gray_chl = mpl.colors.LinearSegmentedColormap.from_list('new_map_gray_ch
 #matrix = np.zeros(10, dtype= [('date', 'S15', 1), ('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
 #matrix = np.zeros(10, dtype= [('seuil', 'int8', 6), ('zrSEUIL', 'int8', 1)])
 
-matrix = np.zeros([(len(data)-1)*10+1, 7, 350,500])      # 91 pour 10 fichiers.
-
+matrix = np.zeros([(len(data))*10+1, 7, 350,500])      # 91 pour 10 fichiers.
+#matrix = np.zeros([(len(data)-201)*10+1, 7, 350,500])
 # Alternate : seuilx100 
 seuils = np.array([(0.05), (0.10), (0.15), (0.20), (0.30), (0.40), (5)])
 
@@ -137,34 +137,37 @@ for myfile in data:
         # *********************************************************************
         # Morpho maths
         
-        zrd1 = ndimage.binary_dilation(zrs, structure=kernel3).astype(zr.dtype)
-        zre1 = ndimage.binary_erosion(zrd1, structure=kernel3).astype(zr.dtype)
+        zre1 = scipy.ndimage.morphology.binary_closing(zrs, structure=kernel3)
 #        zre1 = ndimage.binary_erosion(zrs, structure=kernel3).astype(zr.dtype)
 #        zrd1 = ndimage.binary_dilation(zre1, structure=kernel3).astype(zr.dtype)
         
-        #Closing holes
-        result0= scipy.ndimage.morphology.binary_fill_holes(zre1, structure=kernel3)
-        
-        #Closing islands and headland (cap)
-        result= np.invert(result0)
-        result1= scipy.ndimage.morphology.binary_closing(result, structure=kernel3)
-        result2= np.invert(result1)        
-        
-        # ------
-#        result0 = scipy.ndimage.morphology.binary_fill_holes(zre1, structure=kernel3)
+        #Closing holes ---
+#        result0= scipy.ndimage.morphology.binary_fill_holes(zre1, structure=kernel3)
+#        
 #        #Closing islands and headland (cap)
-#        result = np.invert(result0)
-#        result = scipy.ndimage.morphology.binary_fill_holes(result, structure=kernel3)
-##        result = np.invert(result)
-#        result = scipy.ndimage.morphology.binary_closing(result, structure=kernel3)
-#        result = np.invert(result)
-#        plt.imshow(result)
+#        result= np.invert(result0)
+#        result1= scipy.ndimage.morphology.binary_closing(result, structure=kernel3)
+#        result2= np.invert(result1)        
+        # ----------------        
+        
+        # ------ testeur :
+        
+        result0 = scipy.ndimage.morphology.binary_fill_holes(zre1, structure=kernel3)
+        result0[:,-1:]=1
+        result0[:,:1]=1
+        #Closing islands and headland (cap)
+        result = np.invert(result0)
+        result = scipy.ndimage.morphology.binary_closing(result, structure=kernel3)
+        result = scipy.ndimage.morphology.binary_fill_holes(result, structure=kernel3)
+
+        result = np.invert(result)
+        plt.imshow(result)
         # ------
 #        result= np.invert(scipy.ndimage.morphology.binary_fill_holes(result0, structure=kernel1))
 
         # *********************************************************************
         # Print seuil & save all seuils (npy).
-        matrix[ifile, iseuil] = result2
+        matrix[ifile, iseuil] = result
         print "ifile =", ifile, "  iseuil =", iseuil
 
         fig1 = plt.gcf()
