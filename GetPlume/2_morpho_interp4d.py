@@ -150,7 +150,7 @@ for myfile in data:
 #        result2= np.invert(result1)        
         # ----------------        
         
-        # ------ testeur :
+        # ------
         
         result0 = scipy.ndimage.morphology.binary_fill_holes(zre1, structure=kernel3)
         result0[:,-1:]=1
@@ -200,7 +200,7 @@ while ifile<((len(data)-1)*10):
         
         print 'ifile =', ifile+5, '   iseuil =', iseuil
         
-        #--------- Alternate --------
+        #-----------------
        
         mat = np.copy(matrix)
         
